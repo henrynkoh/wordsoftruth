@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sermon: one
+  script: MyText
+  video_path: MyString
+  thumbnail_path: MyString
+  youtube_id: MyString
+  status: MyString
+
+two:
+  sermon: two
+  script: MyText
+  video_path: MyString
+  thumbnail_path: MyString
+  youtube_id: MyString
+  status: MyString

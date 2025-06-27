@@ -1,0 +1,20 @@
+:verbose: false
+:concurrency: 5
+:timeout: 30
+
+:queues:
+  - critical
+  - default
+  - low
+
+:scheduler:
+  :schedule:
+    sermon_crawler:
+      cron: '0 */4 * * *'  # Every 4 hours
+      class: SermonCrawlingJob
+      queue: default
+      
+    video_processor:
+      cron: '*/15 * * * *'  # Every 15 minutes
+      class: VideoProcessingJob
+      queue: default 

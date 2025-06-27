@@ -1,0 +1,9 @@
+sermon_crawling_job:
+  cron: "0 6 * * 1,4,7"  # Run at 6 AM on Monday, Thursday, and Sunday
+  class: SermonCrawlingJob
+  queue: default
+
+video_processing_job:
+  every: "30m"  # Run every 30 minutes
+  class: VideoProcessingJob
+  queue: default 
