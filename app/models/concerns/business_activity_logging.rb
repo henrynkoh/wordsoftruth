@@ -8,8 +8,8 @@ module BusinessActivityLogging
     after_update :log_business_activity_update
     after_destroy :log_business_activity_deletion
     
-    # Performance tracking
-    around_action :track_business_operation_performance, if: :respond_to_around_action?
+    # Performance tracking (disabled for now)
+    # around_action :track_business_operation_performance, if: :respond_to_around_action?
   end
 
   class_methods do

@@ -20,8 +20,8 @@ class AddPerformanceIndexes < ActiveRecord::Migration[8.0]
     add_index :videos, [:status, :created_at], name: 'index_videos_on_status_and_created_at'
     add_index :videos, [:sermon_id, :status], name: 'index_videos_on_sermon_id_and_status'
     
-    # Foreign key indexes for join performance
-    add_index :videos, :sermon_id, name: 'index_videos_on_sermon_id'
+    # Foreign key indexes for join performance (check if exists first)
+    add_index :videos, :sermon_id, name: 'index_videos_on_sermon_id' unless index_exists?(:videos, :sermon_id)
     
     # Full-text search index for sermon content (if using PostgreSQL in future)
     # add_index :sermons, "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(interpretation, '') || ' ' || coalesce(pastor, ''))", 

@@ -197,8 +197,8 @@ namespace :performance do
     puts "\n📋 Performance Optimization Report"
     puts "=" * 50
     puts "Database:"
-    puts "  Sermons: #{report[:database][:sermon_count]:,}"
-    puts "  Videos: #{report[:database][:video_count]:,}"
+    puts "  Sermons: #{report[:database][:sermon_count]}"
+    puts "  Videos: #{report[:database][:video_count]}"
     puts "  Indexes: #{report[:database][:index_usage]}"
     puts "\nCache:"
     puts "  Hit Rate: #{report[:cache][:hit_rate]}"

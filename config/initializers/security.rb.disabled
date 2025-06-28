@@ -11,9 +11,9 @@ Rails.application.configure do
     same_site: :strict,
     expire_after: 4.hours
   
-  # Configure cookies security
-  config.cookies.same_site_protection = :strict
-  config.cookies.secure = Rails.env.production?
+  # Configure cookies security (Rails 8 compatible)
+  # config.cookies.same_site_protection = :strict
+  # config.cookies.secure = Rails.env.production?
   
   # Content Security Policy
   config.content_security_policy do |policy|

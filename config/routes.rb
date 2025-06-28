@@ -19,6 +19,16 @@ Rails.application.routes.draw do
   require 'sidekiq-scheduler/web'
   mount Sidekiq::Web => '/sidekiq'
 
+  # Monitoring dashboard routes
+  get '/monitoring', to: 'simple_monitoring#index'
+  get '/monitoring/status', to: 'simple_monitoring#status'
+  
+  # Health check routes
+  get '/health', to: 'health#check'
+  get '/health/detailed', to: 'health#detailed'
+  get '/health/business', to: 'health#business'
+  get '/health/performance', to: 'health#performance'
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check

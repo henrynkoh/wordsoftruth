@@ -2,10 +2,10 @@
 Rails.application.configure do
   # Performance monitoring setup
   config.after_initialize do
-    MonitoringService.setup_application_monitoring
-    BusinessAccuracyMonitor.start_monitoring
-    PerformanceMetricsCollector.start_collection
-    ErrorTrackingService.initialize_tracking
+    # MonitoringService.setup_application_monitoring
+    # BusinessAccuracyMonitor.start_monitoring
+    # PerformanceMetricsCollector.start_collection
+    # ErrorTrackingService.initialize_tracking
   end
 end
 
@@ -522,82 +522,4 @@ class AlertManager
   end
 end
 
-# Health check controller
-class HealthController < ApplicationController
-  def check
-    render json: {
-      status: 'ok',
-      timestamp: Time.current,
-      version: ENV['APP_VERSION'] || 'unknown'
-    }
-  end
-  
-  def detailed
-    checks = {
-      database: check_database,
-      redis: check_redis,
-      sidekiq: check_sidekiq,
-      storage: check_storage
-    }
-    
-    overall_status = checks.values.all? { |check| check[:status] == 'ok' } ? 'ok' : 'degraded'
-    
-    render json: {
-      status: overall_status,
-      checks: checks,
-      timestamp: Time.current
-    }
-  end
-  
-  def business
-    checks = {
-      content_extraction: check_content_extraction_health,
-      video_generation: check_video_generation_health,
-      theological_validation: check_theological_validation_health
-    }
-    
-    overall_status = checks.values.all? { |check| check[:status] == 'ok' } ? 'ok' : 'degraded'
-    
-    render json: {
-      status: overall_status,
-      business_checks: checks,
-      timestamp: Time.current
-    }
-  end
-  
-  def performance
-    metrics = {
-      response_time: get_current_response_time,
-      error_rate: get_current_error_rate,
-      throughput: get_current_throughput,
-      resource_usage: get_resource_usage
-    }
-    
-    render json: {
-      performance_metrics: metrics,
-      timestamp: Time.current
-    }
-  end
-  
-  private
-  
-  def check_database
-    start_time = Time.current
-    ActiveRecord::Base.connection.execute('SELECT 1')
-    response_time = ((Time.current - start_time) * 1000).round(2)
-    
-    { status: 'ok', response_time_ms: response_time }
-  rescue => e
-    { status: 'error', error: e.message }
-  end
-  
-  def check_redis
-    start_time = Time.current
-    Redis.current.ping
-    response_time = ((Time.current - start_time) * 1000).round(2)
-    
-    { status: 'ok', response_time_ms: response_time }
-  rescue => e
-    { status: 'error', error: e.message }
-  end
-end
+# Health check methods will be moved to separate controller file

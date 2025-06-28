@@ -19,10 +19,14 @@ Rails.application.configure do
 end
 
 # Configure attr_encrypted settings
-AttrEncrypted.options[:mode] = :per_attribute_iv_and_salt
-AttrEncrypted.options[:algorithm] = 'aes-256-gcm'
-AttrEncrypted.options[:insecure_mode] = false
-AttrEncrypted.options[:encode] = true
+if defined?(AttrEncrypted) && AttrEncrypted.respond_to?(:options)
+  AttrEncrypted.options[:mode] = :per_attribute_iv_and_salt
+  AttrEncrypted.options[:algorithm] = 'aes-256-gcm'
+  AttrEncrypted.options[:insecure_mode] = false
+end
+if defined?(AttrEncrypted) && AttrEncrypted.respond_to?(:options)
+  AttrEncrypted.options[:encode] = true
+end
 
 # BlindIndex configuration for searchable encryption
 BlindIndex.default_options = {

@@ -129,7 +129,7 @@ class SecurityValidator < ActiveModel::EachValidator
     end
     
     # Check for null bytes and control characters
-    if value.match?(/[\x00-\x1f\x7f-\x9f]/)
+    if value.match?(/[\x00-\x1f\x7f-\x9f]/n)
       record.errors.add(attribute, 'contains invalid control characters')
     end
   end

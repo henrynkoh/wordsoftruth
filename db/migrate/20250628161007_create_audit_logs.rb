@@ -5,7 +5,6 @@ class CreateAuditLogs < ActiveRecord::Migration[8.0]
       t.integer :auditable_id
       t.string :action
       t.text :audit_data
-      t.datetime :created_at
 
       t.timestamps
     end

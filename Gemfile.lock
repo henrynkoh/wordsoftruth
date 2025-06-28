@@ -419,7 +419,6 @@ GEM
     rubyzip (2.4.1)
     rufus-scheduler (3.9.2)
       fugit (~> 1.1, >= 1.11.1)
-    secure_headers (7.1.0)
     securerandom (0.4.1)
     selenium-webdriver (4.33.0)
       base64 (~> 0.2)
@@ -555,7 +554,6 @@ DEPENDENCIES
   rubocop-rails-omakase
   rubocop-rspec
   ruby-prof
-  secure_headers
   selenium-webdriver
   sidekiq
   sidekiq-scheduler

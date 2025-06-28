@@ -10,7 +10,39 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_27_005855) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_28_161500) do
+  create_table "audit_logs", force: :cascade do |t|
+    t.string "auditable_type"
+    t.integer "auditable_id"
+    t.string "action"
+    t.text "audit_data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "business_activity_logs", force: :cascade do |t|
+    t.string "activity_type", null: false
+    t.string "entity_type"
+    t.integer "entity_id"
+    t.string "user_id"
+    t.string "operation_name"
+    t.string "metric_name"
+    t.decimal "metric_value", precision: 15, scale: 4
+    t.text "context"
+    t.datetime "performed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_type", "performed_at"], name: "index_business_activity_logs_on_type_and_time"
+    t.index ["activity_type"], name: "index_business_activity_logs_on_activity_type"
+    t.index ["entity_id"], name: "index_business_activity_logs_on_entity_id"
+    t.index ["entity_type", "entity_id"], name: "index_business_activity_logs_on_entity"
+    t.index ["entity_type"], name: "index_business_activity_logs_on_entity_type"
+    t.index ["performed_at", "activity_type"], name: "index_business_activity_logs_on_time_and_type"
+    t.index ["performed_at"], name: "index_business_activity_logs_on_performed_at"
+    t.index ["user_id", "performed_at"], name: "index_business_activity_logs_on_user_and_time"
+    t.index ["user_id"], name: "index_business_activity_logs_on_user_id"
+  end
+
   create_table "sermons", force: :cascade do |t|
     t.string "title"
     t.text "scripture"
@@ -24,6 +56,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_27_005855) do
     t.string "source_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["church"], name: "index_sermons_on_church"
+    t.index ["created_at", "id"], name: "index_sermons_on_created_at_and_id"
+    t.index ["created_at"], name: "index_sermons_on_created_at"
+    t.index ["denomination"], name: "index_sermons_on_denomination"
+    t.index ["pastor"], name: "index_sermons_on_pastor"
+    t.index ["scripture"], name: "index_sermons_on_scripture"
+    t.index ["title"], name: "index_sermons_on_title"
   end
 
   create_table "videos", force: :cascade do |t|
@@ -35,7 +74,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_27_005855) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_videos_on_created_at"
+    t.index ["sermon_id", "status"], name: "index_videos_on_sermon_id_and_status"
     t.index ["sermon_id"], name: "index_videos_on_sermon_id"
+    t.index ["status", "created_at"], name: "index_videos_on_status_and_created_at"
+    t.index ["status"], name: "index_videos_on_status"
+    t.index ["youtube_id"], name: "index_videos_on_youtube_id"
   end
 
   add_foreign_key "videos", "sermons"
