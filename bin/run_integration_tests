@@ -1,0 +1,339 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+# Integration Test Runner for Words of Truth
+# Provides comprehensive testing with performance monitoring
+
+class IntegrationTestRunner
+  PERFORMANCE_THRESHOLDS = {
+    strict: {
+      complete_workflow: 30.seconds,
+      api_response: 500.milliseconds,
+      dashboard_load: 1.second
+    },
+    normal: {
+      complete_workflow: 45.seconds,
+      api_response: 1.second,
+      dashboard_load: 2.seconds
+    },
+    relaxed: {
+      complete_workflow: 60.seconds,
+      api_response: 2.seconds,
+      dashboard_load: 3.seconds
+    }
+  }.freeze
+
+  def initialize
+    @options = {
+      suite: :all,
+      performance_mode: :normal,
+      verbose: false,
+      parallel: true,
+      memory_tracking: false,
+      report_format: :console
+    }
+    
+    parse_options
+    setup_environment
+  end
+
+  def run
+    puts "🚀 Starting Words of Truth Integration Test Suite"
+    puts "=" * 60
+    puts "Performance Mode: #{@options[:performance_mode]}"
+    puts "Test Suite: #{@options[:suite]}"
+    puts "Parallel Execution: #{@options[:parallel]}"
+    puts "Memory Tracking: #{@options[:memory_tracking]}"
+    puts "=" * 60
+
+    start_time = Time.current
+    
+    case @options[:suite]
+    when :all
+      run_all_tests
+    when :workflow
+      run_workflow_tests
+    when :api
+      run_api_tests
+    when :performance
+      run_performance_tests
+    when :quick
+      run_quick_tests
+    end
+
+    end_time = Time.current
+    
+    puts "\n" + "=" * 60
+    puts "✅ Integration tests completed in #{(end_time - start_time).round(2)}s"
+    puts "=" * 60
+
+    generate_summary_report if @options[:report_format] != :none
+  end
+
+  private
+
+  def parse_options
+    OptionParser.new do |opts|
+      opts.banner = "Usage: #{$0} [options]"
+
+      opts.on('-s', '--suite SUITE', [:all, :workflow, :api, :performance, :quick],
+              'Test suite to run (all, workflow, api, performance, quick)') do |suite|
+        @options[:suite] = suite
+      end
+
+      opts.on('-p', '--performance MODE', [:strict, :normal, :relaxed],
+              'Performance threshold mode (strict, normal, relaxed)') do |mode|
+        @options[:performance_mode] = mode
+      end
+
+      opts.on('-v', '--verbose', 'Enable verbose output') do
+        @options[:verbose] = true
+      end
+
+      opts.on('--no-parallel', 'Disable parallel test execution') do
+        @options[:parallel] = false
+      end
+
+      opts.on('-m', '--memory-tracking', 'Enable memory usage tracking') do
+        @options[:memory_tracking] = true
+      end
+
+      opts.on('-r', '--report FORMAT', [:console, :json, :html, :none],
+              'Report format (console, json, html, none)') do |format|
+        @options[:report_format] = format
+      end
+
+      opts.on('-h', '--help', 'Show this help message') do
+        puts opts
+        exit
+      end
+    end.parse!
+  end
+
+  def setup_environment
+    # Set Rails environment
+    ENV['RAILS_ENV'] = 'test'
+    
+    # Configure performance thresholds
+    thresholds = PERFORMANCE_THRESHOLDS[@options[:performance_mode]]
+    thresholds.each { |key, value| ENV["PERF_#{key.upcase}"] = value.to_s }
+    
+    # Configure test options
+    ENV['INTEGRATION_TEST_VERBOSE'] = @options[:verbose].to_s
+    ENV['MEMORY_TRACKING'] = @options[:memory_tracking].to_s
+    ENV['PARALLEL_WORKERS'] = @options[:parallel] ? '2' : '1'
+    
+    # Create reports directory
+    FileUtils.mkdir_p('tmp/integration_test_reports')
+    
+    # Set report file path
+    timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
+    @report_file = "tmp/integration_test_reports/integration_test_#{timestamp}"
+  end
+
+  def run_all_tests
+    puts "📊 Running complete integration test suite..."
+    
+    test_files = [
+      'test/integration/business_workflow_test.rb',
+      'test/integration/api_workflow_test.rb',
+      'test/integration/performance_benchmarks_test.rb'
+    ]
+    
+    run_test_files(test_files)
+  end
+
+  def run_workflow_tests
+    puts "🔄 Running business workflow tests..."
+    run_test_files(['test/integration/business_workflow_test.rb'])
+  end
+
+  def run_api_tests
+    puts "🌐 Running API workflow tests..."
+    run_test_files(['test/integration/api_workflow_test.rb'])
+  end
+
+  def run_performance_tests
+    puts "⚡ Running performance benchmark tests..."
+    run_test_files(['test/integration/performance_benchmarks_test.rb'])
+  end
+
+  def run_quick_tests
+    puts "🏃 Running quick integration tests..."
+    
+    # Run subset of tests for quick feedback
+    quick_tests = [
+      'test/integration/business_workflow_test.rb -n test_complete_sermon_processing_workflow',
+      'test/integration/api_workflow_test.rb -n test_sermon_creation_API_workflow',
+      'test/integration/performance_benchmarks_test.rb -n test_baseline_single_sermon_processing'
+    ]
+    
+    quick_tests.each { |test| run_rails_test(test) }
+  end
+
+  def run_test_files(files)
+    files.each do |file|
+      puts "\n📝 Running #{File.basename(file)}..."
+      
+      start_time = Time.current
+      success = run_rails_test(file)
+      end_time = Time.current
+      
+      duration = end_time - start_time
+      status = success ? "✅ PASSED" : "❌ FAILED"
+      
+      puts "#{status} (#{duration.round(2)}s)"
+      
+      unless success
+        puts "❗ Test failures detected in #{file}"
+        exit(1) unless @options[:suite] == :all
+      end
+    end
+  end
+
+  def run_rails_test(test_path)
+    command = build_rails_test_command(test_path)
+    
+    if @options[:verbose]
+      puts "Executing: #{command}"
+    end
+    
+    system(command)
+  end
+
+  def build_rails_test_command(test_path)
+    cmd = ['bundle', 'exec', 'rails', 'test', test_path]
+    
+    cmd << '--verbose' if @options[:verbose]
+    
+    # Add parallel options if enabled
+    if @options[:parallel] && !test_path.include?('performance_benchmarks')
+      cmd << '--parallel'
+    end
+    
+    cmd.join(' ')
+  end
+
+  def generate_summary_report
+    case @options[:report_format]
+    when :console
+      generate_console_report
+    when :json
+      generate_json_report
+    when :html
+      generate_html_report
+    end
+  end
+
+  def generate_console_report
+    puts "\n" + "📋 INTEGRATION TEST SUMMARY REPORT"
+    puts "=" * 60
+    
+    # Parse test log for metrics (simplified)
+    if File.exist?('log/test.log')
+      performance_lines = `grep "PERFORMANCE:" log/test.log | tail -10`
+      if performance_lines.length > 0
+        puts "🚀 Recent Performance Metrics:"
+        puts performance_lines.split("\n").map { |line| "  #{line.split('PERFORMANCE: ').last}" }
+      end
+      
+      if @options[:memory_tracking]
+        memory_lines = `grep "Memory:" log/test.log | tail -5`
+        if memory_lines.length > 0
+          puts "\n💾 Memory Usage:"
+          puts memory_lines.split("\n").map { |line| "  #{line.split('Memory: ').last}" }
+        end
+      end
+    end
+    
+    puts "\n✨ Test Suite Configuration:"
+    puts "  Performance Mode: #{@options[:performance_mode]}"
+    puts "  Parallel Execution: #{@options[:parallel]}"
+    puts "  Memory Tracking: #{@options[:memory_tracking]}"
+    
+    puts "\n📊 Performance Thresholds Used:"
+    PERFORMANCE_THRESHOLDS[@options[:performance_mode]].each do |metric, threshold|
+      puts "  #{metric}: #{threshold.to_s}"
+    end
+    
+    puts "=" * 60
+  end
+
+  def generate_json_report
+    report_data = {
+      timestamp: Time.current.iso8601,
+      test_suite: @options[:suite],
+      performance_mode: @options[:performance_mode],
+      configuration: @options,
+      thresholds: PERFORMANCE_THRESHOLDS[@options[:performance_mode]]
+    }
+    
+    File.write("#{@report_file}.json", JSON.pretty_generate(report_data))
+    puts "📄 JSON report generated: #{@report_file}.json"
+  end
+
+  def generate_html_report
+    html_content = <<~HTML
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Words of Truth - Integration Test Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 40px; }
+          .header { background: #f0f8ff; padding: 20px; border-radius: 8px; }
+          .metric { margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px; }
+          .pass { color: #28a745; }
+          .fail { color: #dc3545; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Words of Truth Integration Test Report</h1>
+          <p>Generated: #{Time.current}</p>
+          <p>Suite: #{@options[:suite]} | Mode: #{@options[:performance_mode]}</p>
+        </div>
+        
+        <h2>Performance Thresholds</h2>
+        #{PERFORMANCE_THRESHOLDS[@options[:performance_mode]].map { |k, v| 
+          "<div class='metric'>#{k}: #{v}</div>" 
+        }.join}
+        
+        <h2>Test Configuration</h2>
+        #{@options.map { |k, v| 
+          "<div class='metric'>#{k}: #{v}</div>" 
+        }.join}
+      </body>
+      </html>
+    HTML
+    
+    File.write("#{@report_file}.html", html_content)
+    puts "📄 HTML report generated: #{@report_file}.html"
+  end
+end
+
+# Show help if no arguments provided
+if ARGV.empty?
+  puts "Words of Truth Integration Test Runner"
+  puts "Use --help for options"
+  puts "\nQuick start examples:"
+  puts "  #{$0} --suite quick                 # Quick integration tests"
+  puts "  #{$0} --suite workflow --verbose    # Full workflow tests with details"
+  puts "  #{$0} --suite performance --strict  # Performance benchmarks (strict mode)"
+  puts "  #{$0} --suite all --memory-tracking # Complete suite with memory monitoring"
+  exit
+end
+
+# Run the test runner
+begin
+  runner = IntegrationTestRunner.new
+  runner.run
+rescue Interrupt
+  puts "\n\n⚠️  Test execution interrupted by user"
+  exit(1)
+rescue => e
+  puts "\n\n❌ Test execution failed: #{e.message}"
+  puts e.backtrace if ENV['DEBUG']
+  exit(1)
+end

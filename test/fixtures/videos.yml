@@ -2,16 +2,137 @@
 
 one:
   sermon: one
-  script: MyText
-  video_path: MyString
-  thumbnail_path: MyString
-  youtube_id: MyString
-  status: MyString
+  script: |
+    Welcome to Grace Community Church. Today we explore the powerful message of Romans 8:28.
+    
+    In times of difficulty and uncertainty, we often wonder where God is in our struggles. Paul reminds us in Romans 8:28 that God works ALL things together for good for those who love Him and are called according to His purpose.
+    
+    This doesn't mean everything that happens is good, but that our sovereign God can bring good from any situation. Even in our darkest moments, He is working behind the scenes.
+    
+    Three key truths from this passage:
+    1. God's sovereignty - He is in control even when we cannot see it
+    2. God's love - He works for OUR good because He loves us
+    3. God's purpose - He has a plan that extends beyond our current circumstances
+    
+    Let us trust in His timing, pray for wisdom, and serve others who are struggling. Remember, our faith allows us to rest in His perfect plan.
+  video_path: "/storage/videos/faith_and_hope_sermon.mp4"
+  thumbnail_path: "/storage/thumbnails/faith_and_hope_thumb.jpg"
+  youtube_id: "dQw4w9WgXcQ"
+  status: "uploaded"
 
 two:
   sermon: two
-  script: MyText
-  video_path: MyString
-  thumbnail_path: MyString
-  youtube_id: MyString
-  status: MyString
+  script: |
+    Good morning, First Methodist Church family. Today we dive deep into Matthew 6:14-15 and the transformative power of forgiveness.
+    
+    Jesus doesn't suggest forgiveness - He commands it. This passage shows us that forgiveness is not optional for believers, but a reflection of God's heart toward us.
+    
+    Forgiveness is challenging because:
+    - It seems to excuse wrong behavior
+    - We want justice for the pain we've experienced
+    - Pride tells us we deserve an apology first
+    
+    But biblical forgiveness means:
+    - Releasing our right to revenge
+    - Choosing to love despite being hurt
+    - Trusting God to handle justice
+    
+    This week, identify people you need to forgive. Pray for those who have hurt you. Practice self-forgiveness daily. Remember how much God has forgiven you.
+    
+    Forgiveness is only possible through God's grace working in us.
+  video_path: "/storage/videos/power_of_forgiveness_sermon.mp4"
+  thumbnail_path: "/storage/thumbnails/power_of_forgiveness_thumb.jpg"
+  youtube_id: "ABC123XYZ"
+  status: "uploaded"
+
+three:
+  sermon: three
+  script: |
+    Praise the Lord, New Life Assembly! Today we explore what it means to walk in the Spirit from Galatians 5:16.
+    
+    Paul contrasts two ways of living - in the flesh versus in the Spirit. Walking in the Spirit means being led by God's Holy Spirit in our daily decisions, thoughts, and actions.
+    
+    This is not a one-time decision but a moment-by-moment choice. The Spirit produces fruit in our lives that reflects God's character: love, joy, peace, patience, kindness, goodness, faithfulness, gentleness, and self-control.
+    
+    Practical steps for walking in the Spirit:
+    1. Begin each day with prayer and Scripture
+    2. Practice listening to the Spirit's voice
+    3. Confess sin quickly and receive forgiveness
+    4. Fellowship with other Spirit-filled believers
+    5. Look for opportunities to serve in love
+    
+    The Spirit empowers us to live victoriously over sin and to impact our world for Christ.
+  video_path: "/storage/videos/walking_in_spirit_sermon.mp4"
+  thumbnail_path: "/storage/thumbnails/walking_in_spirit_thumb.jpg"
+  youtube_id: "DEF456GHI"
+  status: "processing"
+
+four:
+  sermon: four
+  script: |
+    Good morning, Highland Presbyterian family. Today we rest in the beautiful truth of Psalm 136:1 - God's unfailing love.
+    
+    The psalmist declares 26 times in this chapter that "His love endures forever." This repetition emphasizes an eternal truth - God's love is not dependent on our performance or circumstances.
+    
+    God's love is:
+    - Unconditional - not based on what we do
+    - Eternal - it never runs out or expires
+    - Personal - directed specifically at each of us
+    - Transforming - it changes how we see ourselves and others
+    
+    When we truly understand God's unfailing love, we find:
+    - Security in our identity as His children
+    - Peace in uncertain times
+    - Ability to love others well
+    - Motivation for worship and gratitude
+    
+    This week, memorize verses about God's love. Reflect on how He has shown love in your life. Share this love with someone who needs encouragement.
+  video_path: "/storage/videos/gods_unfailing_love_sermon.mp4"
+  thumbnail_path: "/storage/thumbnails/gods_unfailing_love_thumb.jpg"
+  youtube_id: "JKL789MNO"
+  status: "approved"
+
+five:
+  sermon: five
+  script: |
+    City Life Church, we have been commissioned! Today we examine the Great Commission from Matthew 28:19-20.
+    
+    Before ascending to heaven, Jesus gave His followers a clear mission: Go, make disciples, baptize, and teach. This commission is not just for pastors and missionaries - every believer is called to participate.
+    
+    The Great Commission involves:
+    - Going - actively reaching out to others
+    - Making disciples - not just converts, but followers
+    - Baptizing - public declaration of faith
+    - Teaching - helping others grow in obedience to Christ
+    
+    Jesus promises to be with us as we obey this command. We are not alone in this mission!
+    
+    Practical applications:
+    1. Identify people in your sphere who need Jesus
+    2. Learn to share your testimony effectively
+    3. Invite someone to church or Bible study
+    4. Support missions through prayer and giving
+    5. Serve in your community
+    
+    The harvest is plentiful - let's be faithful workers!
+  video_path: 
+  thumbnail_path: 
+  youtube_id: 
+  status: "pending"
+
+six:
+  sermon: one
+  script: |
+    This is an alternative video version of the Faith and Hope sermon, featuring different visual elements and a condensed message for social media sharing.
+    
+    Romans 8:28 reminds us that God works ALL things for good. In just 60 seconds, let's remember:
+    
+    When life gets difficult, God is still in control. When circumstances don't make sense, God has a plan. When we feel alone, God is working behind the scenes.
+    
+    Trust His timing. Pray for wisdom. Serve others. Rest in His perfect plan.
+    
+    #FaithAndHope #Romans828 #GraceCommunityChurch
+  video_path: 
+  thumbnail_path: 
+  youtube_id: 
+  status: "failed"

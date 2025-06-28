@@ -1,25 +1,61 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  title: MyString
-  scripture: MyText
-  interpretation: MyText
-  action_points: MyText
-  denomination: MyString
-  church: MyString
-  pastor: MyString
-  sermon_date: 2025-06-26 17:58:54
-  audience_count: 1
-  source_url: MyString
+  title: "Faith and Hope in Difficult Times"
+  scripture: "Romans 8:28 - And we know that in all things God works for the good of those who love him, who have been called according to his purpose."
+  interpretation: "Paul reminds us that even in our darkest moments, God is working behind the scenes. This doesn't mean everything that happens is good, but that God can bring good from any situation. Our faith allows us to trust in His sovereign plan even when we cannot see the outcome."
+  action_points: "1. Trust in God's timing and plan for your life. 2. Pray daily for wisdom and strength. 3. Serve others who are going through difficult times. 4. Study Scripture to understand God's character. 5. Join a small group for fellowship and accountability."
+  denomination: "Baptist"
+  church: "Grace Community Church"
+  pastor: "Pastor John Smith"
+  sermon_date: <%= 1.week.ago %>
+  audience_count: 150
+  source_url: "https://gracecommunity.org/sermons/faith-and-hope"
 
 two:
-  title: MyString
-  scripture: MyText
-  interpretation: MyText
-  action_points: MyText
-  denomination: MyString
-  church: MyString
-  pastor: MyString
-  sermon_date: 2025-06-26 17:58:54
-  audience_count: 1
-  source_url: MyString
+  title: "The Power of Forgiveness"
+  scripture: "Matthew 6:14-15 - For if you forgive other people when they sin against you, your heavenly Father will also forgive you. But if you do not forgive others their sins, your Father will not forgive your sins."
+  interpretation: "Jesus teaches us that forgiveness is not optional for believers. It's a command that reflects God's heart toward us. Forgiveness doesn't mean excusing wrong behavior, but rather releasing our right to revenge and choosing to love despite being hurt. This kind of forgiveness is only possible through God's grace."
+  action_points: "1. Identify people you need to forgive. 2. Pray for those who have hurt you. 3. Seek reconciliation where appropriate. 4. Practice daily self-forgiveness. 5. Remember how much God has forgiven you."
+  denomination: "Methodist"
+  church: "First Methodist Church"
+  pastor: "Rev. Sarah Johnson"
+  sermon_date: <%= 2.weeks.ago %>
+  audience_count: 200
+  source_url: "https://firstmethodist.org/sermons/power-of-forgiveness"
+
+three:
+  title: "Walking in the Spirit"
+  scripture: "Galatians 5:16 - So I say, walk by the Spirit, and you will not gratify the desires of the flesh."
+  interpretation: "Paul contrasts life in the flesh with life in the Spirit. Walking in the Spirit means being led by God's Holy Spirit in our daily decisions, thoughts, and actions. This is an ongoing choice we make moment by moment, not a one-time decision. The Spirit produces fruit in our lives that reflects God's character."
+  action_points: "1. Start each day with prayer and Scripture reading. 2. Practice listening to the Holy Spirit's voice. 3. Confess sin quickly and receive forgiveness. 4. Surround yourself with other Spirit-filled believers. 5. Look for opportunities to serve others in love."
+  denomination: "Pentecostal"
+  church: "New Life Assembly"
+  pastor: "Pastor Michael Rodriguez"
+  sermon_date: <%= 3.weeks.ago %>
+  audience_count: 300
+  source_url: "https://newlifeassembly.org/sermons/walking-in-spirit"
+
+four:
+  title: "God's Unfailing Love"
+  scripture: "Psalm 136:1 - Give thanks to the Lord, for he is good. His love endures forever."
+  interpretation: "The psalmist repeatedly declares that God's love endures forever - no matter what circumstances we face. This isn't a temporary emotion but an eternal commitment from our Creator. Understanding God's unfailing love gives us security, peace, and the ability to love others well."
+  action_points: "1. Memorize verses about God's love. 2. Reflect on how God has shown love in your life. 3. Express gratitude through worship and thanksgiving. 4. Share God's love with someone who needs encouragement. 5. Rest in the security of being loved by God."
+  denomination: "Presbyterian"
+  church: "Highland Presbyterian Church"
+  pastor: "Dr. David Kim"
+  sermon_date: <%= 1.month.ago %>
+  audience_count: 120
+  source_url: "https://highland-pres.org/sermons/gods-unfailing-love"
+
+five:
+  title: "The Great Commission"
+  scripture: "Matthew 28:19-20 - Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit, and teaching them to obey everything I have commanded you."
+  interpretation: "Jesus gives His followers a clear mission before ascending to heaven. We are called to go, make disciples, baptize, and teach. This isn't just for pastors and missionaries - every believer is commissioned to share the gospel and help others grow in faith. The promise is that Jesus will be with us as we obey this command."
+  action_points: "1. Identify people in your sphere of influence who need Jesus. 2. Learn to share your testimony effectively. 3. Invite someone to church or a Bible study. 4. Support missions financially and through prayer. 5. Look for opportunities to serve in your community."
+  denomination: "Non-denominational"
+  church: "City Life Church"
+  pastor: "Pastor Lisa Chen"
+  sermon_date: <%= 5.weeks.ago %>
+  audience_count: 450
+  source_url: "https://citylifechurch.org/sermons/great-commission"

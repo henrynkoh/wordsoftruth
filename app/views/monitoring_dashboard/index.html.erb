@@ -1,0 +1,626 @@
+<%# System Health and Performance Dashboard %>
+<% content_for :title, "System Health Dashboard" %>
+<% content_for :page_header, "Words of Truth - System Monitoring" %>
+
+<div class="monitoring-dashboard">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header mb-4">
+    <div class="row">
+      <div class="col-md-8">
+        <h1 class="h3 mb-0">System Health Dashboard</h1>
+        <p class="text-muted">Real-time monitoring and performance metrics</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+          <%= link_to "Performance", monitoring_dashboard_performance_path, class: "btn btn-outline-primary" %>
+          <%= link_to "Business Metrics", monitoring_dashboard_business_metrics_path, class: "btn btn-outline-success" %>
+          <%= link_to "Alerts", monitoring_dashboard_alerts_path, class: "btn btn-outline-warning" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time Status Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card status-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="status-icon bg-success text-white rounded-circle me-3">
+              <i class="fas fa-heartbeat"></i>
+            </div>
+            <div>
+              <h6 class="card-title mb-0">System Status</h6>
+              <div class="status-value" data-metric="system-status">
+                <span class="badge bg-success">Healthy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card status-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="status-icon bg-primary text-white rounded-circle me-3">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div>
+              <h6 class="card-title mb-0">Response Time</h6>
+              <div class="status-value" data-metric="response-time">
+                <span class="value">--</span> <small class="text-muted">ms</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card status-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="status-icon bg-warning text-white rounded-circle me-3">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+              <h6 class="card-title mb-0">Error Rate</h6>
+              <div class="status-value" data-metric="error-rate">
+                <span class="value">--</span> <small class="text-muted">%</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card status-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="status-icon bg-info text-white rounded-circle me-3">
+              <i class="fas fa-users"></i>
+            </div>
+            <div>
+              <h6 class="card-title mb-0">Active Users</h6>
+              <div class="status-value" data-metric="active-users">
+                <span class="value">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Charts -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="card-title mb-0">Response Time Trend</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="responseTimeChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="card-title mb-0">Error Rate Trend</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="errorRateChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Metrics -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="card-title mb-0">Business Accuracy</h6>
+        </div>
+        <div class="card-body">
+          <div class="business-metric mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>Content Extraction</span>
+              <span class="badge bg-success" data-metric="content-extraction-accuracy">--</span>
+            </div>
+            <div class="progress mt-1">
+              <div class="progress-bar bg-success" data-progress="content-extraction" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="business-metric mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>Theological Validation</span>
+              <span class="badge bg-info" data-metric="theological-validation-accuracy">--</span>
+            </div>
+            <div class="progress mt-1">
+              <div class="progress-bar bg-info" data-progress="theological-validation" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="business-metric">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>Video Generation</span>
+              <span class="badge bg-primary" data-metric="video-generation-success">--</span>
+            </div>
+            <div class="progress mt-1">
+              <div class="progress-bar bg-primary" data-progress="video-generation" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="card-title mb-0">Processing Queue</h6>
+        </div>
+        <div class="card-body">
+          <div class="queue-metric mb-3">
+            <div class="d-flex justify-content-between">
+              <span>Sermons Pending</span>
+              <span class="fw-bold" data-metric="sermons-pending">--</span>
+            </div>
+          </div>
+          
+          <div class="queue-metric mb-3">
+            <div class="d-flex justify-content-between">
+              <span>Videos Processing</span>
+              <span class="fw-bold" data-metric="videos-processing">--</span>
+            </div>
+          </div>
+          
+          <div class="queue-metric mb-3">
+            <div class="d-flex justify-content-between">
+              <span>Background Jobs</span>
+              <span class="fw-bold" data-metric="background-jobs">--</span>
+            </div>
+          </div>
+          
+          <div class="queue-metric">
+            <div class="d-flex justify-content-between">
+              <span>Failed Jobs</span>
+              <span class="fw-bold text-danger" data-metric="failed-jobs">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="card-title mb-0">Resource Usage</h6>
+        </div>
+        <div class="card-body">
+          <div class="resource-metric mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>CPU Usage</span>
+              <span data-metric="cpu-usage">--%</span>
+            </div>
+            <div class="progress mt-1">
+              <div class="progress-bar" data-progress="cpu-usage" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="resource-metric mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>Memory Usage</span>
+              <span data-metric="memory-usage">--%</span>
+            </div>
+            <div class="progress mt-1">
+              <div class="progress-bar bg-warning" data-progress="memory-usage" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="resource-metric">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>Disk Usage</span>
+              <span data-metric="disk-usage">--%</span>
+            </div>
+            <div class="progress mt-1">
+              <div class="progress-bar bg-info" data-progress="disk-usage" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Alerts -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="card-title mb-0">Recent Alerts</h6>
+            <%= link_to "View All Alerts", monitoring_dashboard_alerts_path, class: "btn btn-sm btn-outline-warning" %>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="alertsContainer">
+            <div class="text-center py-3">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading alerts...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Status Grid -->
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card service-status-card">
+        <div class="card-body text-center">
+          <div class="service-icon mb-2">
+            <i class="fas fa-database fa-2x" data-service-status="database"></i>
+          </div>
+          <h6>Database</h6>
+          <span class="badge" data-service-badge="database">Checking...</span>
+          <div class="mt-2">
+            <small class="text-muted">Response: <span data-service-response="database">--ms</span></small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card service-status-card">
+        <div class="card-body text-center">
+          <div class="service-icon mb-2">
+            <i class="fas fa-memory fa-2x" data-service-status="redis"></i>
+          </div>
+          <h6>Redis Cache</h6>
+          <span class="badge" data-service-badge="redis">Checking...</span>
+          <div class="mt-2">
+            <small class="text-muted">Response: <span data-service-response="redis">--ms</span></small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card service-status-card">
+        <div class="card-body text-center">
+          <div class="service-icon mb-2">
+            <i class="fas fa-cogs fa-2x" data-service-status="sidekiq"></i>
+          </div>
+          <h6>Background Jobs</h6>
+          <span class="badge" data-service-badge="sidekiq">Checking...</span>
+          <div class="mt-2">
+            <small class="text-muted">Queue: <span data-service-response="sidekiq">--</span></small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card service-status-card">
+        <div class="card-body text-center">
+          <div class="service-icon mb-2">
+            <i class="fas fa-cloud fa-2x" data-service-status="external"></i>
+          </div>
+          <h6>External Services</h6>
+          <span class="badge" data-service-badge="external">Checking...</span>
+          <div class="mt-2">
+            <small class="text-muted">APIs: <span data-service-response="external">--</span></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize dashboard
+  const dashboard = new MonitoringDashboard();
+  dashboard.init();
+});
+
+class MonitoringDashboard {
+  constructor() {
+    this.refreshInterval = 30000; // 30 seconds
+    this.charts = {};
+  }
+
+  init() {
+    this.initializeCharts();
+    this.startAutoRefresh();
+    this.loadInitialData();
+  }
+
+  initializeCharts() {
+    // Response Time Chart
+    const responseTimeCtx = document.getElementById('responseTimeChart').getContext('2d');
+    this.charts.responseTime = new Chart(responseTimeCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Response Time (ms)',
+          data: [],
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Milliseconds'
+            }
+          }
+        }
+      }
+    });
+
+    // Error Rate Chart
+    const errorRateCtx = document.getElementById('errorRateChart').getContext('2d');
+    this.charts.errorRate = new Chart(errorRateCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Error Rate (%)',
+          data: [],
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 10,
+            title: {
+              display: true,
+              text: 'Percentage'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  async loadInitialData() {
+    try {
+      const response = await fetch('<%= monitoring_dashboard_status_path %>', {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.updateDashboard(data);
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    }
+  }
+
+  updateDashboard(data) {
+    // Update status cards
+    this.updateStatusCards(data);
+    
+    // Update service status
+    this.updateServiceStatus(data);
+    
+    // Update alerts
+    this.updateAlerts(data);
+    
+    // Update charts
+    this.updateCharts(data);
+  }
+
+  updateStatusCards(data) {
+    const statusElement = document.querySelector('[data-metric="system-status"]');
+    if (statusElement && data.system_health) {
+      const badge = statusElement.querySelector('.badge');
+      badge.className = `badge bg-${this.getStatusColor(data.system_health.status)}`;
+      badge.textContent = data.system_health.status.charAt(0).toUpperCase() + data.system_health.status.slice(1);
+    }
+
+    if (data.performance_summary) {
+      this.updateMetricValue('response-time', data.performance_summary.response_time + 'ms');
+      this.updateMetricValue('error-rate', data.performance_summary.error_rate + '%');
+      this.updateMetricValue('active-users', data.performance_summary.active_users || '--');
+    }
+  }
+
+  updateServiceStatus(data) {
+    const services = ['database', 'redis', 'sidekiq', 'external'];
+    
+    services.forEach(service => {
+      const serviceData = data.system_health && data.system_health[service];
+      if (serviceData) {
+        this.updateServiceStatusIndicator(service, serviceData);
+      }
+    });
+  }
+
+  updateServiceStatusIndicator(service, serviceData) {
+    const statusIcon = document.querySelector(`[data-service-status="${service}"]`);
+    const statusBadge = document.querySelector(`[data-service-badge="${service}"]`);
+    const responseText = document.querySelector(`[data-service-response="${service}"]`);
+
+    if (statusIcon && statusBadge) {
+      const isHealthy = serviceData.status === 'healthy' || serviceData.status === 'ok';
+      
+      statusIcon.className = `fas fa-${this.getServiceIcon(service)} fa-2x text-${isHealthy ? 'success' : 'danger'}`;
+      statusBadge.className = `badge bg-${isHealthy ? 'success' : 'danger'}`;
+      statusBadge.textContent = isHealthy ? 'Healthy' : 'Unhealthy';
+      
+      if (responseText && serviceData.response_time_ms) {
+        responseText.textContent = serviceData.response_time_ms + 'ms';
+      }
+    }
+  }
+
+  updateAlerts(data) {
+    const alertsContainer = document.getElementById('alertsContainer');
+    if (alertsContainer && data.active_alerts) {
+      if (data.active_alerts.length === 0) {
+        alertsContainer.innerHTML = '<div class="text-center py-3 text-muted">No active alerts</div>';
+      } else {
+        alertsContainer.innerHTML = data.active_alerts.map(alert => this.renderAlert(alert)).join('');
+      }
+    }
+  }
+
+  renderAlert(alert) {
+    const severityClass = this.getSeverityClass(alert.severity);
+    return `
+      <div class="alert alert-${severityClass} alert-dismissible fade show" role="alert">
+        <strong>${alert.type}:</strong> ${alert.message}
+        <small class="text-muted d-block">${new Date(alert.triggered_at).toLocaleString()}</small>
+      </div>
+    `;
+  }
+
+  updateCharts(data) {
+    // This would be implemented with actual chart data
+    // For now, just placeholder functionality
+  }
+
+  updateMetricValue(metric, value) {
+    const element = document.querySelector(`[data-metric="${metric}"] .value`);
+    if (element) {
+      element.textContent = value;
+    }
+  }
+
+  getStatusColor(status) {
+    const colors = {
+      'healthy': 'success',
+      'degraded': 'warning',
+      'critical': 'danger',
+      'ok': 'success'
+    };
+    return colors[status] || 'secondary';
+  }
+
+  getServiceIcon(service) {
+    const icons = {
+      'database': 'database',
+      'redis': 'memory',
+      'sidekiq': 'cogs',
+      'external': 'cloud'
+    };
+    return icons[service] || 'question';
+  }
+
+  getSeverityClass(severity) {
+    const classes = {
+      'critical': 'danger',
+      'high': 'warning',
+      'medium': 'info',
+      'low': 'secondary'
+    };
+    return classes[severity] || 'secondary';
+  }
+
+  startAutoRefresh() {
+    setInterval(() => {
+      this.loadInitialData();
+    }, this.refreshInterval);
+  }
+}
+</script>
+
+<style>
+.monitoring-dashboard {
+  padding: 20px;
+}
+
+.status-card {
+  border-left: 4px solid #007bff;
+  transition: all 0.3s ease;
+}
+
+.status-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.status-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-value .value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.business-metric, .queue-metric, .resource-metric {
+  padding: 8px 0;
+}
+
+.service-status-card {
+  transition: all 0.3s ease;
+}
+
+.service-status-card:hover {
+  transform: translateY(-2px);
+}
+
+.service-icon {
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+.progress {
+  height: 6px;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.dashboard-header {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .monitoring-dashboard {
+    padding: 10px;
+  }
+  
+  .status-card {
+    margin-bottom: 1rem;
+  }
+}
+</style>

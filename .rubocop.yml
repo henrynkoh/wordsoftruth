@@ -1,8 +1,468 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+# RuboCop configuration for Words of Truth Rails Application
+# High-security, production-ready Rails application configuration
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+plugins:
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-performance
+
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+
+AllCops:
+  TargetRubyVersion: 3.2.2
+  TargetRailsVersion: 8.0
+  NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'db/migrate/*.rb'
+    - 'node_modules/**/*'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'log/**/*'
+    - 'storage/**/*'
+    - 'config/boot.rb'
+    - 'config/environment.rb'
+    - 'config/puma.rb'
+
+# ===== SECURITY-FOCUSED RULES =====
+
+# Enforce secure coding practices
+Security/Eval:
+  Enabled: true
+
+Security/YAMLLoad:
+  Enabled: true
+
+Security/Open:
+  Enabled: true
+
+Security/JSONLoad:
+  Enabled: true
+
+Security/MarshalLoad:
+  Enabled: true
+
+# ===== RAILS-SPECIFIC RULES =====
+
+Rails/Output:
+  Enabled: true
+  Severity: error
+
+Rails/OutputSafety:
+  Enabled: true
+  Severity: error
+
+Rails/DynamicFindBy:
+  Enabled: true
+  Severity: warning
+
+Rails/FindBy:
+  Enabled: true
+
+Rails/FindEach:
+  Enabled: true
+  Severity: warning
+
+Rails/HasManyOrHasOneDependent:
+  Enabled: true
+  Severity: warning
+
+Rails/InverseOf:
+  Enabled: true
+
+Rails/Present:
+  Enabled: true
+
+Rails/Blank:
+  Enabled: true
+
+Rails/UniqueValidationWithoutIndex:
+  Enabled: true
+  Severity: warning
+
+Rails/SkipsModelValidations:
+  Enabled: true
+  Severity: warning
+  Include:
+    - 'app/models/**/*.rb'
+    - 'app/services/**/*.rb'
+
+Rails/BulkChangeTable:
+  Enabled: true
+
+Rails/CreateTableWithTimestamps:
+  Enabled: true
+
+Rails/RedundantPresenceValidationOnBelongsTo:
+  Enabled: true
+
+Rails/ReversibleMigration:
+  Enabled: true
+
+Rails/SquishedSQLHeredocs:
+  Enabled: true
+
+# ===== PERFORMANCE RULES =====
+
+Performance/AncestorsInclude:
+  Enabled: true
+
+Performance/BigDecimalWithNumericArgument:
+  Enabled: true
+
+Performance/BlockGivenWithExplicitBlock:
+  Enabled: true
+
+Performance/CaseWhenSplat:
+  Enabled: true
+
+Performance/Casecmp:
+  Enabled: true
+
+Performance/CollectionLiteralInLoop:
+  Enabled: true
+
+Performance/Count:
+  Enabled: true
+
+Performance/Detect:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/InefficientHashSearch:
+  Enabled: true
+
+Performance/RangeInclude:
+  Enabled: true
+
+Performance/RedundantBlockCall:
+  Enabled: true
+
+Performance/RedundantMatch:
+  Enabled: true
+
+Performance/RegexpMatch:
+  Enabled: true
+
+Performance/Size:
+  Enabled: true
+
+Performance/StringReplacement:
+  Enabled: true
+
+Performance/TimesMap:
+  Enabled: true
+
+Performance/UnfreezeString:
+  Enabled: true
+
+Performance/UriDefaultParser:
+  Enabled: true
+
+# ===== RSPEC RULES =====
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/NestedGroups:
+  Max: 4
+
+RSpec/DescribeClass:
+  Enabled: true
+
+RSpec/SpecFilePathFormat:
+  Enabled: true
+
+RSpec/SpecFilePathSuffix:
+  Enabled: true
+
+RSpec/InstanceVariable:
+  Enabled: true
+
+RSpec/LeadingSubject:
+  Enabled: true
+
+RSpec/LetSetup:
+  Enabled: true
+
+RSpec/MessageChain:
+  Enabled: true
+
+RSpec/AnyInstance:
+  Enabled: true
+
+# ===== LAYOUT AND STYLE RULES =====
+
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'config/**/*'
+    - 'spec/**/*'
+
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: indented
+
+Layout/ParameterAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+  Include:
+    - 'app/**/*.rb'
+    - 'lib/**/*.rb'
+    - 'config/**/*.rb'
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Style/TrailingCommaInArrayLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: comma
+
+Style/HashSyntax:
+  Enabled: true
+  EnforcedStyle: ruby19_no_mixed_keys
+
+Style/Lambda:
+  Enabled: true
+  EnforcedStyle: line_count_dependent
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/SafeNavigation:
+  Enabled: true
+
+Style/NumericLiterals:
+  Enabled: true
+  MinDigits: 6
+
+# ===== METRICS RULES =====
+
+Metrics/ClassLength:
+  Max: 150
+  Exclude:
+    - 'app/controllers/**/*'
+
+Metrics/ModuleLength:
+  Max: 150
+
+Metrics/MethodLength:
+  Max: 30
+  Exclude:
+    - 'db/migrate/**/*'
+    - 'spec/**/*'
+
+Metrics/BlockLength:
+  Max: 50
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+    - 'config/environments/**/*'
+    - 'Guardfile'
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Metrics/AbcSize:
+  Max: 20
+  Exclude:
+    - 'db/migrate/**/*'
+
+# ===== NAMING CONVENTIONS =====
+
+Naming/AccessorMethodName:
+  Enabled: true
+
+Naming/BinaryOperatorParameterName:
+  Enabled: true
+
+Naming/ClassAndModuleCamelCase:
+  Enabled: true
+
+Naming/ConstantName:
+  Enabled: true
+
+Naming/FileName:
+  Enabled: true
+  Exclude:
+    - 'Gemfile'
+    - 'Rakefile'
+    - 'config.ru'
+
+Naming/HeredocDelimiterNaming:
+  Enabled: true
+
+Naming/MemoizedInstanceVariableName:
+  Enabled: true
+
+Naming/MethodName:
+  Enabled: true
+
+Naming/PredicatePrefix:
+  Enabled: true
+
+Naming/RescuedExceptionsVariableName:
+  Enabled: true
+
+Naming/VariableName:
+  Enabled: true
+
+# ===== LINT RULES =====
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: true
+
+Lint/AmbiguousOperator:
+  Enabled: true
+
+Lint/AssignmentInCondition:
+  Enabled: true
+
+Lint/BooleanSymbol:
+  Enabled: true
+
+Lint/CircularArgumentReference:
+  Enabled: true
+
+Lint/Debugger:
+  Enabled: true
+  Severity: error
+
+Lint/DeprecatedClassMethods:
+  Enabled: true
+
+Lint/DuplicateHashKey:
+  Enabled: true
+  Severity: error
+
+Lint/DuplicateMethods:
+  Enabled: true
+  Severity: error
+
+Lint/EachWithObjectArgument:
+  Enabled: true
+
+Lint/ElseLayout:
+  Enabled: true
+
+Lint/EmptyEnsure:
+  Enabled: true
+
+Lint/EmptyExpression:
+  Enabled: true
+
+Lint/EmptyInterpolation:
+  Enabled: true
+
+Lint/EmptyWhen:
+  Enabled: true
+
+Lint/EnsureReturn:
+  Enabled: true
+
+Lint/FlipFlop:
+  Enabled: true
+
+Lint/FloatOutOfRange:
+  Enabled: true
+
+Lint/ImplicitStringConcatenation:
+  Enabled: true
+
+Lint/IneffectiveAccessModifier:
+  Enabled: true
+
+Lint/InterpolationCheck:
+  Enabled: true
+
+Lint/LiteralAsCondition:
+  Enabled: true
+
+Lint/LiteralInInterpolation:
+  Enabled: true
+
+Lint/Loop:
+  Enabled: true
+
+Lint/ParenthesesAsGroupedExpression:
+  Enabled: true
+
+Lint/RandOne:
+  Enabled: true
+
+Lint/RequireParentheses:
+  Enabled: true
+
+Lint/RescueException:
+  Enabled: true
+  Severity: error
+
+Lint/ShadowedArgument:
+  Enabled: true
+
+Lint/ShadowedException:
+  Enabled: true
+
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+
+Lint/RedundantStringCoercion:
+  Enabled: true
+
+# Lint/Syntax cannot be configured - it's always enabled
+
+Lint/UnderscorePrefixedVariableName:
+  Enabled: true
+
+Lint/UnifiedInteger:
+  Enabled: true
+
+Lint/UnreachableCode:
+  Enabled: true
+  Severity: error
+
+Lint/UnusedBlockArgument:
+  Enabled: true
+
+Lint/UnusedMethodArgument:
+  Enabled: true
+
+Lint/UselessAccessModifier:
+  Enabled: true
+
+Lint/UselessAssignment:
+  Enabled: true
+
+Lint/BinaryOperatorWithIdenticalOperands:
+  Enabled: true
+
+Lint/UselessElseWithoutRescue:
+  Enabled: true
+
+Lint/UselessSetterCall:
+  Enabled: true
+
+Lint/Void:
+  Enabled: true

@@ -85,7 +85,12 @@ group :development do
   gem "web-console"
 
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
-  # gem "rack-mini-profiler"
+  gem "rack-mini-profiler"
+
+  # Performance profiling tools
+  gem "ruby-prof"
+  gem "stackprof"
+  gem "memory_profiler"
 
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
@@ -101,3 +106,13 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "simplecov", "~> 0.22.0", :group => :test
+gem "webmock", "~> 3.25", :group => :test
+gem "mocha", "~> 2.7", :group => :test
+
+# Security gems
+gem "attr_encrypted"
+gem "blind_index"
+gem "rack-attack"
+gem "secure_headers"

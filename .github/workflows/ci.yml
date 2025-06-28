@@ -1,90 +1,250 @@
-name: CI
+name: CI/CD Pipeline with Business Validation
 
 on:
-  pull_request:
   push:
-    branches: [ main ]
+    branches: [ main, develop, 'feature/*', 'hotfix/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  RUBY_VERSION: '3.2.2'
+  NODE_VERSION: '18'
+  RAILS_ENV: test
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wordsoftruth_test
+  REDIS_URL: redis://localhost:6379/0
 
 jobs:
-  scan_ruby:
+  # ================================
+  # CODE QUALITY AND LINTING
+  # ================================
+  code_quality:
+    name: Code Quality & Linting
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Full history for better analysis
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.RUBY_VERSION }}
+        bundler-cache: true
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        bundle install --jobs 4 --retry 3
+        npm ci
+    
+    - name: Run RuboCop
+      run: |
+        bundle exec rubocop --format progress --format json --out rubocop_results.json
+        
+    - name: Upload RuboCop results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: rubocop-results
+        path: rubocop_results.json
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
-
-  scan_js:
+  # ================================
+  # SECURITY SCANNING
+  # ================================
+  security_scan:
+    name: Security Scanning
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.RUBY_VERSION }}
+        bundler-cache: true
+    
+    - name: Install dependencies
+      run: bundle install --jobs 4 --retry 3
+    
+    - name: Run Brakeman security scan
+      run: |
+        bundle exec brakeman --format json --output brakeman_results.json --quiet
+        
+    - name: Upload Brakeman results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: brakeman-results
+        path: brakeman_results.json
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
-
+  # ================================
+  # AUTOMATED TESTING
+  # ================================
   test:
+    name: Automated Testing
     runs-on: ubuntu-latest
-
-    # services:
-    #  redis:
-    #    image: redis
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Run tests
+    
+    services:
+      postgres:
+        image: postgres:15
         env:
-          RAILS_ENV: test
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test test:system
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wordsoftruth_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        test_suite: [unit, integration, system, business_validation]
+    
+    steps:
+    - name: Install packages
+      run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable
+    
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.RUBY_VERSION }}
+        bundler-cache: true
+    
+    - name: Install dependencies
+      run: bundle install --jobs 4 --retry 3
+    
+    - name: Setup test database
+      run: |
+        bundle exec rails db:create db:schema:load
+        
+    - name: Precompile assets
+      run: bundle exec rails assets:precompile
+    
+    - name: Run Unit Tests
+      if: matrix.test_suite == 'unit'
+      run: |
+        bundle exec rails test:models test:helpers test:mailers test:jobs --verbose
+        
+    - name: Run Integration Tests
+      if: matrix.test_suite == 'integration'
+      run: |
+        bundle exec rails test:integration --verbose
+        
+    - name: Run System Tests
+      if: matrix.test_suite == 'system'
+      run: |
+        bundle exec rails test:system --verbose
+        
+    - name: Run Business Validation Tests
+      if: matrix.test_suite == 'business_validation'
+      run: |
+        bundle exec rails test:business_validation --verbose
+    
+    - name: Keep screenshots from failed system tests
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: screenshots
+        path: ${{ github.workspace }}/tmp/screenshots
+        if-no-files-found: ignore
 
-      - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+  # ================================
+  # BUSINESS VALIDATION PIPELINE
+  # ================================
+  business_validation:
+    name: Business Validation
+    runs-on: ubuntu-latest
+    needs: [code_quality, security_scan]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wordsoftruth_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.RUBY_VERSION }}
+        bundler-cache: true
+    
+    - name: Install dependencies
+      run: bundle install --jobs 4 --retry 3
+    
+    - name: Setup test database
+      run: |
+        bundle exec rails db:create db:schema:load db:seed
+    
+    - name: Run Business Logic Validation
+      run: bundle exec rake business:validate_all
+    
+    - name: Run Sermon Processing Validation
+      run: bundle exec rake business:validate_sermon_processing
+    
+    - name: Run Video Generation Validation
+      run: bundle exec rake business:validate_video_generation
+    
+    - name: Run Content Quality Validation
+      run: bundle exec rake business:validate_content_quality
+    
+    - name: Generate Business Validation Report
+      run: bundle exec rake business:generate_validation_report
+    
+    - name: Upload business validation results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: business-validation-results
+        path: |
+          tmp/business_validation_report.json
+          tmp/business_validation_detailed.html

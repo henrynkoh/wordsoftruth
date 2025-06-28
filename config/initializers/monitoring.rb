@@ -1,0 +1,603 @@
+# Comprehensive monitoring and alerting setup for Words of Truth
+Rails.application.configure do
+  # Performance monitoring setup
+  config.after_initialize do
+    MonitoringService.setup_application_monitoring
+    BusinessAccuracyMonitor.start_monitoring
+    PerformanceMetricsCollector.start_collection
+    ErrorTrackingService.initialize_tracking
+  end
+end
+
+# Central monitoring service
+class MonitoringService
+  include Singleton
+  
+  # Monitoring configuration
+  PERFORMANCE_THRESHOLDS = {
+    response_time_p95: 2000,        # 2 seconds
+    response_time_p99: 5000,        # 5 seconds
+    error_rate: 0.01,               # 1%
+    database_query_time: 1000,      # 1 second
+    memory_usage: 0.8,              # 80%
+    cpu_usage: 0.7,                 # 70%
+    disk_usage: 0.85                # 85%
+  }.freeze
+  
+  BUSINESS_ACCURACY_THRESHOLDS = {
+    content_extraction_accuracy: 0.95,    # 95%
+    theological_validation_accuracy: 0.90, # 90%
+    video_generation_success_rate: 0.92,   # 92%
+    content_quality_score: 0.85            # 85%
+  }.freeze
+  
+  def self.setup_application_monitoring
+    # Initialize performance monitoring
+    setup_new_relic if Rails.env.production?
+    setup_sentry_error_tracking
+    setup_custom_metrics_collection
+    setup_health_checks
+    
+    Rails.logger.info "Monitoring services initialized"
+  end
+  
+  private
+  
+  def self.setup_new_relic
+    require 'newrelic_rpm'
+    
+    # Custom attributes for business context
+    NewRelic::Agent.add_custom_attributes({
+      service_name: 'wordsoftruth',
+      environment: Rails.env,
+      version: ENV['APP_VERSION'] || 'unknown'
+    })
+    
+    # Custom business metrics
+    setup_business_metrics_tracking
+  end
+  
+  def self.setup_sentry_error_tracking
+    Sentry.init do |config|
+      config.dsn = ENV['SENTRY_DSN']
+      config.breadcrumbs_logger = [:active_support_logger, :http_logger]
+      config.environment = Rails.env
+      config.release = ENV['APP_VERSION'] || 'unknown'
+      
+      # Filter sensitive data
+      config.before_send = lambda do |event, hint|
+        # Remove sensitive information
+        event.extra&.delete(:database_url)
+        event.extra&.delete(:redis_url)
+        event
+      end
+      
+      # Custom tags for business context
+      config.tags = {
+        component: 'business_system',
+        feature: 'sermon_processing'
+      }
+    end
+  end
+  
+  def self.setup_custom_metrics_collection
+    # Start metrics collection threads
+    Thread.new { MetricsCollector.start_collection }
+    Thread.new { BusinessMetricsCollector.start_collection }
+    Thread.new { SystemHealthMonitor.start_monitoring }
+  end
+  
+  def self.setup_health_checks
+    # Register health check endpoints
+    Rails.application.routes.prepend do
+      get '/health', to: 'health#check'
+      get '/health/detailed', to: 'health#detailed'
+      get '/health/business', to: 'health#business'
+      get '/health/performance', to: 'health#performance'
+    end
+  end
+  
+  def self.setup_business_metrics_tracking
+    # Track custom business metrics in New Relic
+    NewRelic::Agent.record_metric('Custom/BusinessLogic/SermonProcessing/Count', 0)
+    NewRelic::Agent.record_metric('Custom/BusinessLogic/VideoGeneration/Count', 0)
+    NewRelic::Agent.record_metric('Custom/BusinessLogic/ContentValidation/Accuracy', 0)
+  end
+end
+
+# Performance metrics collector
+class PerformanceMetricsCollector
+  include Singleton
+  
+  def self.start_collection
+    Thread.new do
+      loop do
+        collect_application_metrics
+        collect_database_metrics
+        collect_cache_metrics
+        collect_background_job_metrics
+        sleep 60 # Collect every minute
+      end
+    end
+  end
+  
+  private
+  
+  def self.collect_application_metrics
+    # Response time metrics
+    recent_logs = parse_rails_logs(1.minute.ago)
+    response_times = recent_logs.map { |log| log[:duration] }.compact
+    
+    if response_times.any?
+      avg_response_time = response_times.sum / response_times.length
+      p95_response_time = response_times.sort[((response_times.length - 1) * 0.95).round]
+      p99_response_time = response_times.sort[((response_times.length - 1) * 0.99).round]
+      
+      store_metric('application.response_time.average', avg_response_time)
+      store_metric('application.response_time.p95', p95_response_time)
+      store_metric('application.response_time.p99', p99_response_time)
+      
+      # Alert if thresholds exceeded
+      if p95_response_time > MonitoringService::PERFORMANCE_THRESHOLDS[:response_time_p95]
+        AlertManager.send_alert('high_response_time', {
+          current: p95_response_time,
+          threshold: MonitoringService::PERFORMANCE_THRESHOLDS[:response_time_p95]
+        })
+      end
+    end
+    
+    # Memory usage
+    memory_usage = get_memory_usage
+    store_metric('application.memory.usage_percent', memory_usage)
+    
+    if memory_usage > MonitoringService::PERFORMANCE_THRESHOLDS[:memory_usage]
+      AlertManager.send_alert('high_memory_usage', {
+        current: memory_usage,
+        threshold: MonitoringService::PERFORMANCE_THRESHOLDS[:memory_usage]
+      })
+    end
+  end
+  
+  def self.collect_database_metrics
+    # Database query performance
+    slow_queries = get_slow_queries(1.minute.ago)
+    avg_query_time = calculate_average_query_time(1.minute.ago)
+    
+    store_metric('database.slow_queries.count', slow_queries.count)
+    store_metric('database.query_time.average', avg_query_time)
+    
+    # Connection pool metrics
+    pool_stats = ActiveRecord::Base.connection_pool.stat
+    store_metric('database.connections.size', pool_stats[:size])
+    store_metric('database.connections.checked_out', pool_stats[:checked_out])
+    store_metric('database.connections.checked_in', pool_stats[:checked_in])
+  end
+  
+  def self.collect_cache_metrics
+    # Redis cache metrics
+    redis_info = Redis.current.info
+    store_metric('cache.hit_rate', calculate_cache_hit_rate(redis_info))
+    store_metric('cache.memory_usage', redis_info['used_memory'].to_i)
+    store_metric('cache.connected_clients', redis_info['connected_clients'].to_i)
+  end
+  
+  def self.collect_background_job_metrics
+    # Sidekiq metrics
+    stats = Sidekiq::Stats.new
+    store_metric('background_jobs.processed', stats.processed)
+    store_metric('background_jobs.failed', stats.failed)
+    store_metric('background_jobs.enqueued', stats.enqueued)
+    store_metric('background_jobs.busy', stats.workers_size)
+    
+    # Alert on job failures
+    if stats.failed > 0
+      failed_jobs = Sidekiq::FailedSet.new
+      recent_failures = failed_jobs.select { |job| job['failed_at'] > 1.hour.ago.to_f }
+      
+      if recent_failures.count > 5
+        AlertManager.send_alert('high_job_failure_rate', {
+          failed_count: recent_failures.count,
+          time_window: '1 hour'
+        })
+      end
+    end
+  end
+  
+  def self.store_metric(name, value)
+    # Store in time series database or send to monitoring service
+    MetricStorage.store(name, value, Time.current)
+    
+    # Also send to New Relic if configured
+    if defined?(NewRelic)
+      NewRelic::Agent.record_metric("Custom/#{name}", value)
+    end
+  end
+end
+
+# Business accuracy monitoring
+class BusinessAccuracyMonitor
+  include Singleton
+  
+  def self.start_monitoring
+    Thread.new do
+      loop do
+        monitor_content_extraction_accuracy
+        monitor_theological_validation_accuracy
+        monitor_video_generation_success_rate
+        monitor_content_quality_scores
+        sleep 300 # Check every 5 minutes
+      end
+    end
+  end
+  
+  private
+  
+  def self.monitor_content_extraction_accuracy
+    # Analyze recent sermon extractions
+    recent_sermons = Sermon.where(created_at: 1.hour.ago..Time.current)
+    
+    total_extractions = recent_sermons.count
+    return if total_extractions == 0
+    
+    successful_extractions = recent_sermons.where.not(interpretation: [nil, '']).count
+    accuracy = successful_extractions.to_f / total_extractions
+    
+    store_business_metric('content_extraction.accuracy', accuracy)
+    
+    if accuracy < MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:content_extraction_accuracy]
+      AlertManager.send_business_alert('low_content_extraction_accuracy', {
+        current_accuracy: accuracy,
+        threshold: MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:content_extraction_accuracy],
+        total_extractions: total_extractions
+      })
+    end
+  end
+  
+  def self.monitor_theological_validation_accuracy
+    # Check theological validation results
+    recent_validations = BusinessActivityLog.where(
+      activity_type: 'theological_validation',
+      performed_at: 1.hour.ago..Time.current
+    )
+    
+    return if recent_validations.empty?
+    
+    passed_validations = recent_validations.where("context->>'result' = 'passed'").count
+    accuracy = passed_validations.to_f / recent_validations.count
+    
+    store_business_metric('theological_validation.accuracy', accuracy)
+    
+    if accuracy < MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:theological_validation_accuracy]
+      AlertManager.send_business_alert('low_theological_validation_accuracy', {
+        current_accuracy: accuracy,
+        threshold: MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:theological_validation_accuracy]
+      })
+    end
+  end
+  
+  def self.monitor_video_generation_success_rate
+    # Monitor video generation pipeline success
+    recent_videos = Video.where(created_at: 4.hours.ago..Time.current)
+    
+    total_videos = recent_videos.count
+    return if total_videos == 0
+    
+    successful_videos = recent_videos.where(status: 'uploaded').count
+    success_rate = successful_videos.to_f / total_videos
+    
+    store_business_metric('video_generation.success_rate', success_rate)
+    
+    if success_rate < MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:video_generation_success_rate]
+      AlertManager.send_business_alert('low_video_generation_success_rate', {
+        current_rate: success_rate,
+        threshold: MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:video_generation_success_rate],
+        total_videos: total_videos
+      })
+    end
+  end
+  
+  def self.monitor_content_quality_scores
+    # Monitor content quality metrics
+    recent_quality_assessments = BusinessActivityLog.where(
+      activity_type: 'content_quality_assessment',
+      performed_at: 2.hours.ago..Time.current
+    )
+    
+    return if recent_quality_assessments.empty?
+    
+    quality_scores = recent_quality_assessments.map do |assessment|
+      assessment.context['quality_score'].to_f
+    end.compact
+    
+    return if quality_scores.empty?
+    
+    avg_quality_score = quality_scores.sum / quality_scores.length
+    store_business_metric('content_quality.average_score', avg_quality_score)
+    
+    if avg_quality_score < MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:content_quality_score]
+      AlertManager.send_business_alert('low_content_quality_score', {
+        current_score: avg_quality_score,
+        threshold: MonitoringService::BUSINESS_ACCURACY_THRESHOLDS[:content_quality_score]
+      })
+    end
+  end
+  
+  def self.store_business_metric(name, value)
+    BusinessMetric.create!(
+      metric_name: name,
+      metric_value: value,
+      recorded_at: Time.current,
+      context: { monitoring_source: 'business_accuracy_monitor' }
+    )
+    
+    # Also store in general metrics
+    PerformanceMetricsCollector.store_metric("business.#{name}", value)
+  end
+end
+
+# Error tracking and alerting service
+class ErrorTrackingService
+  include Singleton
+  
+  def self.initialize_tracking
+    # Set up error capturing
+    Rails.application.config.middleware.use(ErrorCaptureMiddleware)
+    
+    # Start error analysis thread
+    Thread.new { analyze_error_patterns }
+  end
+  
+  def self.track_error(error, context = {})
+    # Create error record
+    ErrorLog.create!(
+      error_class: error.class.name,
+      error_message: error.message,
+      stack_trace: error.backtrace&.join("\n"),
+      context: context,
+      occurred_at: Time.current
+    )
+    
+    # Send to external error tracking
+    Sentry.capture_exception(error, extra: context) if defined?(Sentry)
+    
+    # Check for error rate threshold
+    recent_errors = ErrorLog.where(occurred_at: 1.hour.ago..Time.current).count
+    total_requests = get_total_requests(1.hour.ago)
+    
+    if total_requests > 0
+      error_rate = recent_errors.to_f / total_requests
+      
+      if error_rate > MonitoringService::PERFORMANCE_THRESHOLDS[:error_rate]
+        AlertManager.send_alert('high_error_rate', {
+          current_rate: error_rate,
+          threshold: MonitoringService::PERFORMANCE_THRESHOLDS[:error_rate],
+          recent_errors: recent_errors
+        })
+      end
+    end
+  end
+  
+  private
+  
+  def self.analyze_error_patterns
+    loop do
+      # Analyze error patterns every 10 minutes
+      sleep 600
+      
+      recent_errors = ErrorLog.where(occurred_at: 1.hour.ago..Time.current)
+      
+      # Group by error class
+      error_groups = recent_errors.group(:error_class).count
+      
+      error_groups.each do |error_class, count|
+        if count > 10 # More than 10 of the same error type
+          AlertManager.send_alert('repeated_error_pattern', {
+            error_class: error_class,
+            count: count,
+            time_window: '1 hour'
+          })
+        end
+      end
+    end
+  end
+end
+
+# Alert management system
+class AlertManager
+  ALERT_CHANNELS = {
+    slack: ENV['SLACK_WEBHOOK_URL'],
+    email: ENV['ALERT_EMAIL'],
+    pagerduty: ENV['PAGERDUTY_API_KEY']
+  }.freeze
+  
+  def self.send_alert(alert_type, data)
+    alert = Alert.create!(
+      alert_type: alert_type,
+      severity: determine_severity(alert_type),
+      data: data,
+      triggered_at: Time.current,
+      status: 'triggered'
+    )
+    
+    # Send notifications based on severity
+    case alert.severity
+    when 'critical'
+      send_to_all_channels(alert)
+    when 'high'
+      send_to_slack(alert)
+      send_to_email(alert)
+    when 'medium'
+      send_to_slack(alert)
+    when 'low'
+      # Log only
+      Rails.logger.warn "Low severity alert: #{alert_type} - #{data}"
+    end
+  end
+  
+  def self.send_business_alert(alert_type, data)
+    # Business-specific alerting
+    alert = BusinessAlert.create!(
+      alert_type: alert_type,
+      business_impact: determine_business_impact(alert_type),
+      data: data,
+      triggered_at: Time.current,
+      status: 'triggered'
+    )
+    
+    # Notify business stakeholders
+    case alert.business_impact
+    when 'high'
+      send_to_business_channel(alert)
+      send_to_email(alert, recipient: ENV['BUSINESS_ALERT_EMAIL'])
+    when 'medium'
+      send_to_business_channel(alert)
+    end
+  end
+  
+  private
+  
+  def self.determine_severity(alert_type)
+    severity_mapping = {
+      'high_error_rate' => 'critical',
+      'high_response_time' => 'high',
+      'high_memory_usage' => 'high',
+      'high_job_failure_rate' => 'medium',
+      'repeated_error_pattern' => 'medium'
+    }
+    
+    severity_mapping[alert_type] || 'low'
+  end
+  
+  def self.determine_business_impact(alert_type)
+    impact_mapping = {
+      'low_content_extraction_accuracy' => 'high',
+      'low_theological_validation_accuracy' => 'high',
+      'low_video_generation_success_rate' => 'high',
+      'low_content_quality_score' => 'medium'
+    }
+    
+    impact_mapping[alert_type] || 'low'
+  end
+  
+  def self.send_to_slack(alert)
+    return unless ALERT_CHANNELS[:slack]
+    
+    payload = {
+      text: "🚨 Alert: #{alert.alert_type}",
+      attachments: [{
+        color: alert.severity == 'critical' ? 'danger' : 'warning',
+        fields: [
+          { title: 'Severity', value: alert.severity, short: true },
+          { title: 'Time', value: alert.triggered_at.strftime('%Y-%m-%d %H:%M:%S UTC'), short: true },
+          { title: 'Data', value: alert.data.to_json, short: false }
+        ]
+      }]
+    }
+    
+    HTTParty.post(ALERT_CHANNELS[:slack], {
+      body: payload.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    })
+  end
+  
+  def self.send_to_business_channel(alert)
+    return unless ENV['BUSINESS_SLACK_WEBHOOK']
+    
+    payload = {
+      text: "📊 Business Alert: #{alert.alert_type}",
+      attachments: [{
+        color: alert.business_impact == 'high' ? 'danger' : 'warning',
+        fields: [
+          { title: 'Business Impact', value: alert.business_impact, short: true },
+          { title: 'Time', value: alert.triggered_at.strftime('%Y-%m-%d %H:%M:%S UTC'), short: true },
+          { title: 'Details', value: alert.data.to_json, short: false }
+        ]
+      }]
+    }
+    
+    HTTParty.post(ENV['BUSINESS_SLACK_WEBHOOK'], {
+      body: payload.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    })
+  end
+end
+
+# Health check controller
+class HealthController < ApplicationController
+  def check
+    render json: {
+      status: 'ok',
+      timestamp: Time.current,
+      version: ENV['APP_VERSION'] || 'unknown'
+    }
+  end
+  
+  def detailed
+    checks = {
+      database: check_database,
+      redis: check_redis,
+      sidekiq: check_sidekiq,
+      storage: check_storage
+    }
+    
+    overall_status = checks.values.all? { |check| check[:status] == 'ok' } ? 'ok' : 'degraded'
+    
+    render json: {
+      status: overall_status,
+      checks: checks,
+      timestamp: Time.current
+    }
+  end
+  
+  def business
+    checks = {
+      content_extraction: check_content_extraction_health,
+      video_generation: check_video_generation_health,
+      theological_validation: check_theological_validation_health
+    }
+    
+    overall_status = checks.values.all? { |check| check[:status] == 'ok' } ? 'ok' : 'degraded'
+    
+    render json: {
+      status: overall_status,
+      business_checks: checks,
+      timestamp: Time.current
+    }
+  end
+  
+  def performance
+    metrics = {
+      response_time: get_current_response_time,
+      error_rate: get_current_error_rate,
+      throughput: get_current_throughput,
+      resource_usage: get_resource_usage
+    }
+    
+    render json: {
+      performance_metrics: metrics,
+      timestamp: Time.current
+    }
+  end
+  
+  private
+  
+  def check_database
+    start_time = Time.current
+    ActiveRecord::Base.connection.execute('SELECT 1')
+    response_time = ((Time.current - start_time) * 1000).round(2)
+    
+    { status: 'ok', response_time_ms: response_time }
+  rescue => e
+    { status: 'error', error: e.message }
+  end
+  
+  def check_redis
+    start_time = Time.current
+    Redis.current.ping
+    response_time = ((Time.current - start_time) * 1000).round(2)
+    
+    { status: 'ok', response_time_ms: response_time }
+  rescue => e
+    { status: 'error', error: e.message }
+  end
+end

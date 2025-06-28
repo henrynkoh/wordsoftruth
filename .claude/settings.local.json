@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bundle exec rails test:*)",
+      "Bash(grep:*)",
+      "Bash(bundle install)",
+      "Bash(bundle exec rake:*)",
+      "Bash(stackprof:*)",
+      "Bash(bundle exec rails generate:*)",
+      "Bash(bundle exec brakeman:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

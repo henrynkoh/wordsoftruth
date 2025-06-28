@@ -1,0 +1,127 @@
+# Brakeman Security Scanner Configuration
+# High-security configuration for SaaS Rails application
+
+# Application path
+app_path: .
+
+# Rails configuration
+rails: true
+
+# Output format options
+format: json
+output_file: brakeman_report.json
+
+# Security check options
+checks:
+  - BasicAuth
+  - BasicAuthPassword
+  - ContentTag
+  - CreateWith
+  - CrossSiteScripting
+  - DefaultRoutes
+  - Deserialize
+  - DetailedExceptions
+  - DigestDoS
+  - DivideByZero
+  - DynamicFinders
+  - EscapeFunction
+  - Evaluation
+  - Execute
+  - FileAccess
+  - FileDisclosure
+  - FilterSkipping
+  - ForgerySetting
+  - HeaderDoS
+  - I18nXSS
+  - JRubyXML
+  - JSONEncoding
+  - JSONParsing
+  - LinkTo
+  - LinkToHref
+  - MailTo
+  - MassAssignment
+  - ModelAttrAccessible
+  - ModelAttributes
+  - ModelSerialize
+  - NestedAttributes
+  - NestedAttributesBypass
+  - NumberToCurrency
+  - PageCachingCVE
+  - Pathname
+  - QuoteTableName
+  - Redirect
+  - Regex
+  - Render
+  - RenderDoS
+  - RenderInline
+  - ResponseSplitting
+  - RouteDoS
+  - SQL
+  - SQLCVEs
+  - SSLVerify
+  - SafeBufferManipulation
+  - SanitizeMethods
+  - SelectTag
+  - SelectVulnerability
+  - Send
+  - SendFile
+  - SessionManipulation
+  - SessionSettings
+  - SimpleFormat
+  - SingleQuotes
+  - SkipBeforeFilter
+  - SprocketsPathTraversal
+  - StripTags
+  - SymbolDoSCVE
+  - TranslateBug
+  - UnsafeReflection
+  - UnscopedFind
+  - ValidationRegex
+  - WithoutProtection
+  - XMLDoS
+  - YAMLParsing
+
+# Directories to scan
+include_paths:
+  - app/
+  - config/
+  - lib/
+  - test/
+  - spec/
+
+# Directories to skip
+skip_paths:
+  - log/
+  - tmp/
+  - vendor/
+  - node_modules/
+  - storage/
+  - public/
+
+# Files to skip
+skip_files:
+  - config/application.rb
+  - config/boot.rb
+  - config/environment.rb
+  - db/schema.rb
+
+# Minimum confidence level (0=High, 1=Medium, 2=Low)
+# 0 = only show high confidence warnings
+# 1 = show medium and high confidence warnings  
+# 2 = show all warnings
+min_confidence: 1
+
+# Report all issues including low priority ones for comprehensive audit
+report_progress: true
+print_report: true
+separate_models: true
+summary_only: false
+
+# Additional security options
+ignore_redirect_to_model: false
+ignore_model_output: false
+ignore_protected_attributes: false
+ignore_arel_sql_injection: false
+
+# Enable experimental checks
+enable_rails_config: true
