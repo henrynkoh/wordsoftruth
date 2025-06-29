@@ -6,9 +6,12 @@
 #   PerformanceProfiler.profile_search_algorithms
 #   PerformanceProfiler.profile_dashboard_stats
 
-require 'ruby-prof'
-require 'stackprof'
-require 'memory_profiler'
+# Only load profiling gems in development/test environments
+if Rails.env.development? || Rails.env.test?
+  require 'ruby-prof'
+  require 'stackprof'
+  require 'memory_profiler'
+end
 require 'benchmark'
 require 'ostruct'
 
@@ -16,13 +19,19 @@ class PerformanceProfiler
   PROFILE_DIR = Rails.root.join('tmp', 'performance_profiles')
   
   class << self
+    def profiling_available?
+      Rails.env.development? || Rails.env.test?
+    end
+    
     def setup_profiling_environment
+      return unless profiling_available?
       FileUtils.mkdir_p(PROFILE_DIR)
       puts "Performance profiling setup complete. Reports saved to: #{PROFILE_DIR}"
     end
 
     # Profile SermonCrawlerService core algorithms
     def profile_sermon_crawler(iterations: 10, sample_size: 100)
+      return puts "Profiling only available in development/test environments" unless profiling_available?
       setup_profiling_environment
       puts "\n=== Profiling SermonCrawlerService ==="
       
@@ -68,6 +77,7 @@ class PerformanceProfiler
 
     # Profile VideoGeneratorService algorithms
     def profile_video_generator(iterations: 5, video_count: 50)
+      return puts "Profiling only available in development/test environments" unless profiling_available?
       setup_profiling_environment
       puts "\n=== Profiling VideoGeneratorService ==="
       
