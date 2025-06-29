@@ -2,9 +2,10 @@ app = "wordsoftruth-monitoring"
 primary_region = "iad"
 
 [build]
+  dockerfile = "Dockerfile.fly"
 
 [deploy]
-  release_command = "rails db:migrate"
+  release_command = "./bin/rails db:migrate"
 
 [env]
   RAILS_ENV = "production"
