@@ -543,7 +543,7 @@ DEPENDENCIES
   kamal
   memory_profiler
   mocha (~> 2.7)
-  pg
+  pg (~> 1.5)
   propshaft
   puma (>= 5.0)
   rack-attack
