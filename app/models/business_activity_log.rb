@@ -1,6 +1,6 @@
 class BusinessActivityLog < ApplicationRecord
   # Serialization for context data
-  serialize :context, JSON
+  serialize :context, coder: JSON
   
   # Validations
   validates :activity_type, presence: true
