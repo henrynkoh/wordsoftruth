@@ -1,0 +1,22 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacksPlan]
+providers = ["ruby"]
+
+[build.nixpacksPhase.setup]
+nixPkgs = ["postgresql"]
+
+[build.nixpacksPhase.install]
+cmds = ["bundle install"]
+
+[build.nixpacksPhase.build]
+cmds = ["bundle exec rails assets:precompile"]
+
+[deploy]
+startCommand = "bundle exec rails server -b 0.0.0.0 -p $PORT"
+
+[variables]
+RAILS_ENV = "production"
+RAILS_SERVE_STATIC_FILES = "true"
+RAILS_LOG_TO_STDOUT = "true"
