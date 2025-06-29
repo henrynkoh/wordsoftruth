@@ -3,7 +3,7 @@ class AuditLog < ApplicationRecord
   belongs_to :auditable, polymorphic: true, optional: true
   
   # JSON serialization for audit data
-  serialize :audit_data, JSON
+  serialize :audit_data, coder: JSON
   
   # Validations
   validates :action, presence: true
