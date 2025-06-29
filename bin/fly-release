@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+puts "Running Rails database migrations..."
+system("rails db:migrate")
+
+puts "Release script completed!"
