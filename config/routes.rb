@@ -1,9 +1,11 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Defines the root path route ("/")
-  root "dashboard#index"
+  # Defines the root path route ("/") - redirect to enhanced monitoring dashboard
+  root "simple_monitoring#index"
 
+  # Legacy dashboard routes
+  get '/dashboard', to: 'dashboard#index'
   resources :dashboard, only: [:index] do
     collection do
       get :job_progress
