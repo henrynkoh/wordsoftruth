@@ -241,14 +241,5 @@ class SecurityValidator < ActiveModel::EachValidator
 end
 
 # Additional specific validators
-class UrlSecurityValidator < SecurityValidator
-  def validate_each(record, attribute, value)
-    super(record, attribute, value) if options[:type] == :url
-  end
-end
-
-class ContentSecurityValidator < SecurityValidator
-  def validate_each(record, attribute, value)
-    super(record, attribute, value) if options[:type] == :content
-  end
-end
+# Note: These validators are now integrated into the main SecurityValidator class
+# Use SecurityValidator with the appropriate :type option instead of these specific classes

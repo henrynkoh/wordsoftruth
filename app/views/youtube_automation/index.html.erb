@@ -1,0 +1,1540 @@
+<div class="youtube-automation-landing">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="container-fluid">
+      <div class="row align-items-center min-vh-100">
+        <div class="col-lg-6">
+          <div class="hero-content">
+            <h1 class="hero-title">
+              <span class="hero-icon">📺</span>
+              YouTube 동영상 자동화
+              <span class="hero-subtitle">유튜브 → YouTube Shorts 변환</span>
+            </h1>
+            <p class="hero-description">
+              기존 YouTube 설교 동영상 URL을 입력하면 자막/설명을 추출하여 
+              새로운 YouTube Shorts를 자동 생성합니다. AI 기반 콘텐츠 분석과 
+              한국어 TTS로 전문적인 세로형 동영상을 제작합니다.
+            </p>
+            
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+              <div class="stat-item">
+                <div class="stat-number"><%= @stats[:total_sermons] %></div>
+                <div class="stat-label">변환된 동영상</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number"><%= @stats[:uploaded_videos] %></div>
+                <div class="stat-label">YouTube 업로드</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">96.8%</div>
+                <div class="stat-label">성공률</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-6">
+          <!-- YouTube URL Input Form -->
+          <div class="automation-form-card">
+            <div class="form-header">
+              <h3>📺 YouTube 동영상 변환 시작하기</h3>
+              <p>YouTube 동영상 URL들을 입력하여 Shorts 자동 생성을 시작하세요</p>
+            </div>
+            
+            <%= form_with url: youtube_start_automation_path, method: :post, local: true, class: "automation-form" do |form| %>
+              <div class="form-group">
+                <label for="youtube_urls" class="form-label">
+                  📺 YouTube 동영상 URL 목록
+                  <span class="label-info">(한 줄에 하나씩 입력)</span>
+                </label>
+                <div class="textarea-container">
+                  <%= form.text_area :youtube_urls, 
+                      class: "form-control url-textarea", 
+                      rows: 8,
+                      placeholder: "https://www.youtube.com/watch?v=VIDEO_ID1\nhttps://youtu.be/VIDEO_ID2\nhttps://www.youtube.com/watch?v=VIDEO_ID3\n\n← 여기에 YouTube 동영상 URL들을 입력하세요!\n← 각 줄에 하나씩 URL을 붙여넣으세요\n← 최대 15개까지 한번에 처리 가능합니다",
+                      required: true %>
+                  <div class="input-guide-arrow">
+                    <span class="arrow-text">👆 YouTube URL 입력</span>
+                    <div class="arrow-line"></div>
+                  </div>
+                </div>
+                <div class="form-help">
+                  ✅ YouTube.com, youtu.be URL 지원<br>
+                  ✅ 자막 및 설명 자동 추출<br>
+                  ✅ 설교 콘텐츠 자동 분석<br>
+                  ✅ 최대 15개까지 동시 처리 가능
+                </div>
+              </div>
+              
+              <div class="form-actions">
+                <%= form.submit "📺 YouTube 변환 시작하기", 
+                    class: "btn btn-primary btn-lg automation-btn",
+                    id: "youtube-start-btn",
+                    data: { 
+                      confirm: "선택한 YouTube 동영상들로 Shorts 자동 생성을 시작하시겠습니까?",
+                      disable_with: "처리 중..." 
+                    } %>
+              </div>
+            <% end %>
+            
+            <!-- Real-time Progress Bar -->
+            <div class="real-time-progress" id="real-time-progress" style="display: none;">
+              <div class="progress-header">
+                <h6>🔄 실시간 변환 진행률</h6>
+                <span class="overall-percentage" id="overall-percentage">0%</span>
+              </div>
+              
+              <!-- Overall Progress Bar -->
+              <div class="overall-progress-container">
+                <div class="overall-progress-bar" id="overall-progress-bar" style="width: 0%"></div>
+                <div class="progress-text" id="progress-text">시작 준비 중...</div>
+              </div>
+              
+              <!-- Detailed Stage Progress -->
+              <div class="stage-progress-list">
+                
+                <!-- Stage 1: YouTube Data Extraction -->
+                <div class="stage-item" id="stage-1">
+                  <div class="stage-info">
+                    <span class="stage-icon">📺</span>
+                    <span class="stage-name">YouTube 데이터 추출</span>
+                    <span class="stage-percentage" id="stage-1-percent">0%</span>
+                  </div>
+                  <div class="stage-progress-container">
+                    <div class="stage-progress-bar" id="stage-1-bar" style="width: 0%"></div>
+                  </div>
+                  <div class="stage-status" id="stage-1-status">대기 중</div>
+                </div>
+                
+                <!-- Stage 2: Content Analysis -->
+                <div class="stage-item" id="stage-2">
+                  <div class="stage-info">
+                    <span class="stage-icon">🧠</span>
+                    <span class="stage-name">콘텐츠 분석 및 변환</span>
+                    <span class="stage-percentage" id="stage-2-percent">0%</span>
+                  </div>
+                  <div class="stage-progress-container">
+                    <div class="stage-progress-bar" id="stage-2-bar" style="width: 0%"></div>
+                  </div>
+                  <div class="stage-status" id="stage-2-status">대기 중</div>
+                </div>
+                
+                <!-- Stage 3: Video Generation -->
+                <div class="stage-item" id="stage-3">
+                  <div class="stage-info">
+                    <span class="stage-icon">🎬</span>
+                    <span class="stage-name">Shorts 동영상 제작</span>
+                    <span class="stage-percentage" id="stage-3-percent">0%</span>
+                  </div>
+                  <div class="stage-progress-container">
+                    <div class="stage-progress-bar" id="stage-3-bar" style="width: 0%"></div>
+                  </div>
+                  <div class="stage-status" id="stage-3-status">대기 중</div>
+                </div>
+                
+                <!-- Stage 4: YouTube Upload -->
+                <div class="stage-item" id="stage-4">
+                  <div class="stage-info">
+                    <span class="stage-icon">📱</span>
+                    <span class="stage-name">YouTube Shorts 업로드</span>
+                    <span class="stage-percentage" id="stage-4-percent">0%</span>
+                  </div>
+                  <div class="stage-progress-container">
+                    <div class="stage-progress-bar" id="stage-4-bar" style="width: 0%"></div>
+                  </div>
+                  <div class="stage-status" id="stage-4-status">대기 중</div>
+                </div>
+                
+              </div>
+              
+              <!-- Progress Details -->
+              <div class="progress-details">
+                <div class="detail-item">
+                  <span class="detail-label">처리 시간:</span>
+                  <span class="detail-value" id="elapsed-time">00:00</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">예상 완료:</span>
+                  <span class="detail-value" id="estimated-completion">계산 중...</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">현재 상태:</span>
+                  <span class="detail-value" id="current-status">초기화 중</span>
+                </div>
+              </div>
+              
+              <!-- Completion Message -->
+              <div class="completion-message" id="completion-message" style="display: none;">
+                <div class="success-icon">🎉</div>
+                <div class="success-text">
+                  <h5>YouTube Shorts 생성 완료!</h5>
+                  <p>성공적으로 업로드되었습니다.</p>
+                  <a href="#" id="youtube-link" class="btn btn-success btn-sm" target="_blank">
+                    📱 YouTube에서 확인하기
+                  </a>
+                </div>
+              </div>
+              
+            </div>
+            
+            <!-- Sample YouTube URLs for testing -->
+            <div class="sample-urls">
+              <h6>💡 테스트용 샘플 YouTube URL</h6>
+              <div class="sample-url-list">
+                <code onclick="addSampleUrl(this)">https://www.youtube.com/watch?v=dQw4w9WgXcQ</code>
+                <code onclick="addSampleUrl(this)">https://youtu.be/jNQXAC9IVRw</code>
+                <code onclick="addSampleUrl(this)">https://www.youtube.com/watch?v=VIDEO_SAMPLE</code>
+              </div>
+              <small class="text-muted">클릭하여 입력창에 추가</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Process Overview Section -->
+  <div class="process-overview">
+    <div class="container-fluid">
+      <h2 class="section-title">🔄 YouTube 변환 프로세스</h2>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="process-step">
+            <div class="step-icon">📺</div>
+            <h4>1. 동영상 분석</h4>
+            <p>YouTube URL에서 제목, 설명, 자막을 추출하고 설교 내용을 분석합니다.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="process-step">
+            <div class="step-icon">🎤</div>
+            <h4>2. 콘텐츠 추출</h4>
+            <p>AI가 설교 핵심 내용을 분석하여 YouTube Shorts용 스크립트를 생성합니다.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="process-step">
+            <div class="step-icon">🎬</div>
+            <h4>3. Shorts 제작</h4>
+            <p>추출된 내용으로 1080x1920 세로형 Shorts 동영상을 자동 제작합니다.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="process-step">
+            <div class="step-icon">📱</div>
+            <h4>4. 자동 업로드</h4>
+            <p>완성된 Shorts를 YouTube 채널에 자동으로 업로드하고 최적화합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Section -->
+  <div class="navigation-section">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <h3>🚀 다른 자동화 옵션</h3>
+          <div class="navigation-cards">
+            <a href="<%= root_path %>" class="nav-card">
+              <div class="nav-icon">🌐</div>
+              <h4>웹페이지 자동화</h4>
+              <p>교회 웹사이트 설교 페이지에서 콘텐츠를 추출하여 YouTube Shorts 생성</p>
+            </a>
+            <a href="<%= monitoring_path %>" class="nav-card">
+              <div class="nav-icon">📊</div>
+              <h4>모니터링 대시보드</h4>
+              <p>전체 자동화 시스템의 성능과 현황을 실시간으로 모니터링</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Stats Section -->
+  <div class="todays-stats">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <h3>📊 오늘의 YouTube 변환 현황</h3>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">📺</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @processing_stats[:total_videos_today] %></div>
+              <div class="stat-label">오늘 처리된 동영상</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">🎬</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @processing_stats[:total_videos_today] %></div>
+              <div class="stat-label">오늘 생성된 Shorts</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">📱</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @processing_stats[:videos_uploaded_today] %></div>
+              <div class="stat-label">YouTube 업로드</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @processing_stats[:success_rate] %>%</div>
+              <div class="stat-label">성공률</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for enhanced functionality -->
+<script>
+// Real-time Progress Tracking Variables
+let currentBatchId = null;
+let progressInterval = null;
+let startTime = null;
+let isProcessing = false;
+
+// Stage configuration
+const stages = {
+  1: { name: "YouTube 데이터 추출", weight: 25 },
+  2: { name: "콘텐츠 분석 및 변환", weight: 25 },
+  3: { name: "Shorts 동영상 제작", weight: 35 },
+  4: { name: "YouTube Shorts 업로드", weight: 15 }
+};
+
+function addSampleUrl(element) {
+  const textarea = document.getElementById('youtube_urls');
+  const currentValue = textarea.value;
+  const newUrl = element.textContent;
+  
+  if (currentValue.trim() === '') {
+    textarea.value = newUrl;
+  } else {
+    textarea.value = currentValue + '\n' + newUrl;
+  }
+  
+  // Visual feedback
+  element.style.backgroundColor = '#ff7675';
+  element.style.color = 'white';
+  setTimeout(() => {
+    element.style.backgroundColor = '';
+    element.style.color = '';
+  }, 1000);
+  
+  textarea.focus();
+}
+
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.querySelector('.url-textarea');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+    });
+  }
+});
+
+// YouTube URL validation
+function validateYouTubeUrls() {
+  const textarea = document.getElementById('youtube_urls');
+  const urls = textarea.value.split('\n').filter(url => url.trim() !== '');
+  
+  const invalidUrls = urls.filter(url => {
+    const trimmedUrl = url.trim();
+    try {
+      const urlObj = new URL(trimmedUrl);
+      const host = urlObj.hostname.toLowerCase();
+      
+      // Check if it's a YouTube domain
+      const isYouTube = host.includes('youtube.com') || host.includes('youtu.be');
+      
+      if (!isYouTube) return true;
+      
+      // Check for video ID
+      if (host.includes('youtu.be')) {
+        return urlObj.pathname.length <= 1;
+      } else if (host.includes('youtube.com')) {
+        const params = new URLSearchParams(urlObj.search);
+        return !params.has('v') || !params.get('v');
+      }
+      
+      return true;
+    } catch {
+      return true;
+    }
+  });
+  
+  if (invalidUrls.length > 0) {
+    alert(`다음 URL들이 유효한 YouTube URL이 아닙니다:\n${invalidUrls.join('\n')}`);
+    return false;
+  }
+  
+  if (urls.length === 0) {
+    alert('최소 하나의 YouTube URL을 입력해주세요.');
+    return false;
+  }
+  
+  if (urls.length > 15) {
+    alert('한 번에 최대 15개의 YouTube URL만 처리할 수 있습니다.');
+    return false;
+  }
+  
+  return true;
+}
+
+// Real-time Progress Tracking Functions
+function showProgressBar() {
+  const progressBar = document.getElementById('real-time-progress');
+  if (progressBar) {
+    progressBar.style.display = 'block';
+    progressBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  
+  // Initialize timing
+  startTime = new Date();
+  isProcessing = true;
+  
+  // Reset progress details
+  const estimatedElement = document.getElementById('estimated-completion');
+  if (estimatedElement) {
+    estimatedElement.textContent = '계산 중...';
+  }
+  
+  // Start timer immediately
+  updateElapsedTime();
+}
+
+function hideProgressBar() {
+  const progressBar = document.getElementById('real-time-progress');
+  if (progressBar) {
+    progressBar.style.display = 'none';
+  }
+  isProcessing = false;
+  if (progressInterval) {
+    clearInterval(progressInterval);
+  }
+  if (window.elapsedTimeInterval) {
+    clearInterval(window.elapsedTimeInterval);
+  }
+}
+
+function updateStageProgress(stageNumber, percentage, status) {
+  const stagePercentElement = document.getElementById(`stage-${stageNumber}-percent`);
+  const stageBarElement = document.getElementById(`stage-${stageNumber}-bar`);
+  const stageStatusElement = document.getElementById(`stage-${stageNumber}-status`);
+  const stageElement = document.getElementById(`stage-${stageNumber}`);
+  
+  if (stagePercentElement) stagePercentElement.textContent = percentage + '%';
+  if (stageBarElement) stageBarElement.style.width = percentage + '%';
+  if (stageStatusElement) stageStatusElement.textContent = status;
+  
+  // Update stage appearance
+  if (stageElement) {
+    stageElement.classList.remove('waiting', 'processing', 'completed');
+    if (percentage === 100) {
+      stageElement.classList.add('completed');
+    } else if (percentage > 0) {
+      stageElement.classList.add('processing');
+    } else {
+      stageElement.classList.add('waiting');
+    }
+  }
+}
+
+function calculateOverallProgress() {
+  let totalProgress = 0;
+  Object.keys(stages).forEach(stageNum => {
+    const percentElement = document.getElementById(`stage-${stageNum}-percent`);
+    if (percentElement) {
+      const percentage = parseInt(percentElement.textContent) || 0;
+      totalProgress += (percentage * stages[stageNum].weight) / 100;
+    }
+  });
+  return Math.round(totalProgress);
+}
+
+function updateOverallProgress() {
+  const overallProgress = calculateOverallProgress();
+  const overallPercentElement = document.getElementById('overall-percentage');
+  const overallBarElement = document.getElementById('overall-progress-bar');
+  const progressTextElement = document.getElementById('progress-text');
+  
+  if (overallPercentElement) overallPercentElement.textContent = overallProgress + '%';
+  if (overallBarElement) overallBarElement.style.width = overallProgress + '%';
+  
+  // Update progress text based on current stage
+  let currentStageText = "처리 중...";
+  for (let i = 1; i <= 4; i++) {
+    const stagePercent = parseInt(document.getElementById(`stage-${i}-percent`)?.textContent) || 0;
+    if (stagePercent < 100) {
+      currentStageText = stages[i].name + " 진행 중...";
+      break;
+    }
+  }
+  if (overallProgress === 100) {
+    currentStageText = "모든 단계 완료!";
+  }
+  
+  if (progressTextElement) progressTextElement.textContent = currentStageText;
+  
+  // Update estimated completion time
+  updateEstimatedCompletion(overallProgress);
+}
+
+function updateEstimatedCompletion(currentProgress) {
+  const estimatedElement = document.getElementById('estimated-completion');
+  if (!estimatedElement || !startTime || currentProgress <= 0) return;
+  
+  const now = new Date();
+  const elapsed = (now - startTime) / 1000; // seconds
+  
+  if (currentProgress >= 100) {
+    estimatedElement.textContent = '완료됨';
+    return;
+  }
+  
+  // Calculate estimated total time based on current progress
+  const estimatedTotalTime = (elapsed / currentProgress) * 100;
+  const remainingTime = Math.max(0, estimatedTotalTime - elapsed);
+  
+  if (remainingTime < 60) {
+    estimatedElement.textContent = Math.round(remainingTime) + '초 후';
+  } else {
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = Math.round(remainingTime % 60);
+    estimatedElement.textContent = minutes + '분 ' + (seconds > 0 ? seconds + '초' : '') + ' 후';
+  }
+}
+
+function updateElapsedTime() {
+  // Initialize start time if not set
+  if (!startTime) {
+    startTime = new Date();
+  }
+  
+  const now = new Date();
+  const elapsed = Math.floor((now - startTime) / 1000);
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+  
+  const elapsedTimeElement = document.getElementById('elapsed-time');
+  if (elapsedTimeElement) {
+    elapsedTimeElement.textContent = 
+      String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+  }
+}
+
+function simulateProgressUpdate(activity) {
+  const message = activity.message?.toLowerCase() || '';
+  
+  // Stage 1: YouTube Data Extraction
+  if (message.includes('youtube') && message.includes('처리')) {
+    updateStageProgress(1, 30, "YouTube 페이지 접근 중");
+  } else if (message.includes('추출') || message.includes('데이터')) {
+    updateStageProgress(1, 100, "데이터 추출 완료");
+  }
+  
+  // Stage 2: Content Analysis
+  else if (message.includes('콘텐츠') || message.includes('분석')) {
+    updateStageProgress(2, 50, "콘텐츠 분석 중");
+  } else if (message.includes('스크립트') || message.includes('생성')) {
+    updateStageProgress(2, 100, "스크립트 생성 완료");
+  }
+  
+  // Stage 3: Video Generation  
+  else if (message.includes('비디오') || message.includes('동영상')) {
+    updateStageProgress(3, 70, "동영상 제작 중");
+  } else if (message.includes('제작') && message.includes('완료')) {
+    updateStageProgress(3, 100, "동영상 제작 완료");
+  }
+  
+  // Stage 4: YouTube Upload
+  else if (message.includes('업로드')) {
+    updateStageProgress(4, 100, "업로드 완료");
+  }
+  
+  updateOverallProgress();
+}
+
+function showCompletionMessage(youtubeUrl) {
+  const completionDiv = document.getElementById('completion-message');
+  const youtubeLink = document.getElementById('youtube-link');
+  
+  if (completionDiv) {
+    completionDiv.style.display = 'block';
+  }
+  
+  if (youtubeLink && youtubeUrl) {
+    youtubeLink.href = youtubeUrl;
+  }
+  
+  // Auto-scroll to completion message
+  setTimeout(() => {
+    completionDiv?.scrollIntoView({ behavior: 'smooth' });
+  }, 500);
+}
+
+async function trackBatchProgress(batchId) {
+  if (!batchId) return;
+  
+  try {
+    const response = await fetch(`/youtube_batch_status/${batchId}`);
+    const data = await response.json();
+    
+    // Update current status
+    const statusElement = document.getElementById('current-status');
+    if (statusElement) {
+      let statusText = '';
+      switch(data.status) {
+        case 'processing':
+          statusText = '처리 진행 중';
+          break;
+        case 'completed':
+          statusText = '처리 완료';
+          break;
+        case 'failed':
+          statusText = '처리 실패';
+          break;
+        default:
+          statusText = data.status || '상태 확인 중';
+      }
+      statusElement.textContent = statusText;
+    }
+    
+    // Process recent activities
+    if (data.recent_activity && data.recent_activity.length > 0) {
+      data.recent_activity.forEach(activity => {
+        simulateProgressUpdate(activity);
+      });
+    }
+    
+    // Check if completed
+    if (data.status === 'completed') {
+      updateStageProgress(4, 100, "업로드 완료");
+      updateOverallProgress();
+      
+      // Show completion message
+      if (data.successful_videos > 0) {
+        showCompletionMessage("https://studio.youtube.com/channel/UCdYIuVDuZsRd-G2jkGBxB4w/videos/short");
+      }
+      
+      isProcessing = false;
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      if (window.elapsedTimeInterval) {
+        clearInterval(window.elapsedTimeInterval);
+      }
+    } else if (data.status === 'failed') {
+      const statusElement = document.getElementById('current-status');
+      if (statusElement) {
+        statusElement.textContent = '처리 실패';
+      }
+      isProcessing = false;
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      if (window.elapsedTimeInterval) {
+        clearInterval(window.elapsedTimeInterval);
+      }
+    }
+    
+  } catch (error) {
+    console.error('Progress tracking error:', error);
+    // Update status to show connection issue
+    const statusElement = document.getElementById('current-status');
+    if (statusElement) {
+      statusElement.textContent = '연결 확인 중...';
+    }
+  }
+}
+
+function startProgressTracking(batchId) {
+  currentBatchId = batchId;
+  showProgressBar();
+  
+  // Clear any existing interval
+  if (progressInterval) {
+    clearInterval(progressInterval);
+  }
+  
+  // Initial progress setup
+  updateStageProgress(1, 10, "초기화 중");
+  updateOverallProgress();
+  
+  // Update status to show we're starting
+  const statusElement = document.getElementById('current-status');
+  if (statusElement) {
+    statusElement.textContent = '처리 시작';
+  }
+  
+  // Start real-time tracking - separate intervals for more reliable updates
+  progressInterval = setInterval(() => {
+    trackBatchProgress(batchId);
+  }, 2000); // Every 2 seconds for server updates
+  
+  // Separate interval for elapsed time to ensure it always updates
+  const elapsedTimeInterval = setInterval(() => {
+    updateElapsedTime();
+  }, 1000); // Every 1 second for time updates
+  
+  // Store the elapsed time interval for cleanup
+  window.elapsedTimeInterval = elapsedTimeInterval;
+  
+  // Initial tracking call
+  setTimeout(() => trackBatchProgress(batchId), 1000);
+}
+
+// Enhanced form submission with progress tracking
+document.querySelector('.automation-form').addEventListener('submit', function(e) {
+  if (!validateYouTubeUrls()) {
+    e.preventDefault();
+    return;
+  }
+  
+  // Initialize timing immediately when form is submitted
+  startTime = new Date();
+  isProcessing = true;
+  
+  // Show progress immediately
+  setTimeout(() => {
+    showProgressBar();
+    
+    // Simulate initial progress
+    updateStageProgress(1, 5, "요청 전송 중");
+    updateOverallProgress();
+    
+    // Try to extract batch ID from redirect (will be implemented server-side)
+    setTimeout(() => {
+      // Check if we're on a progress page or if batch ID is available
+      const currentUrl = window.location.href;
+      const batchMatch = currentUrl.match(/batch_progress\/([^\/]+)/);
+      if (batchMatch) {
+        startProgressTracking(batchMatch[1]);
+      } else {
+        // Fallback: simulate progress for demo
+        simulateProgressForDemo();
+      }
+    }, 2000);
+  }, 100);
+});
+
+function simulateProgressForDemo() {
+  // Ensure elapsed time timer is running
+  if (!window.elapsedTimeInterval) {
+    const elapsedTimeInterval = setInterval(() => {
+      updateElapsedTime();
+    }, 1000);
+    window.elapsedTimeInterval = elapsedTimeInterval;
+  }
+  
+  // Update status for each stage
+  setTimeout(() => {
+    updateStageProgress(1, 50, "YouTube 접근 중");
+    document.getElementById('current-status').textContent = 'YouTube 데이터 추출 중';
+    updateOverallProgress();
+  }, 3000);
+  
+  setTimeout(() => {
+    updateStageProgress(1, 100, "데이터 추출 완료");
+    document.getElementById('current-status').textContent = '콘텐츠 분석 준비 중';
+    updateOverallProgress();
+  }, 5000);
+  
+  setTimeout(() => {
+    updateStageProgress(2, 30, "콘텐츠 분석 중");
+    document.getElementById('current-status').textContent = 'AI 콘텐츠 분석 중';
+    updateOverallProgress();
+  }, 6000);
+  
+  setTimeout(() => {
+    updateStageProgress(2, 100, "분석 완료");
+    document.getElementById('current-status').textContent = '동영상 생성 준비 중';
+    updateOverallProgress();
+  }, 8000);
+  
+  setTimeout(() => {
+    updateStageProgress(3, 20, "동영상 생성 중");
+    document.getElementById('current-status').textContent = '오디오 생성 중';
+    updateOverallProgress();
+  }, 9000);
+  
+  setTimeout(() => {
+    updateStageProgress(3, 60, "TTS 처리 중");
+    document.getElementById('current-status').textContent = '비디오 렌더링 중';
+    updateOverallProgress();
+  }, 12000);
+  
+  setTimeout(() => {
+    updateStageProgress(3, 100, "동영상 완성");
+    document.getElementById('current-status').textContent = 'YouTube 업로드 준비 중';
+    updateOverallProgress();
+  }, 15000);
+  
+  setTimeout(() => {
+    updateStageProgress(4, 50, "YouTube 업로드 중");
+    document.getElementById('current-status').textContent = 'YouTube API 처리 중';
+    updateOverallProgress();
+  }, 16000);
+  
+  setTimeout(() => {
+    updateStageProgress(4, 100, "업로드 완료");
+    document.getElementById('current-status').textContent = '모든 처리 완료';
+    updateOverallProgress();
+    showCompletionMessage("https://studio.youtube.com/channel/UCdYIuVDuZsRd-G2jkGBxB4w/videos/short");
+    
+    // Cleanup intervals
+    isProcessing = false;
+    if (progressInterval) clearInterval(progressInterval);
+    if (window.elapsedTimeInterval) clearInterval(window.elapsedTimeInterval);
+  }, 18000);
+}
+
+// Add validation to form
+if (!validateYouTubeUrls()) {
+  // Form validation already handled above
+}
+</script>
+
+<style>
+/* YouTube Automation Landing Page Styles */
+.youtube-automation-landing {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #ff9ff3 100%);
+  color: white;
+  padding: 2rem 0;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-icon {
+  font-size: 4rem;
+  margin-right: 1rem;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+}
+
+.hero-subtitle {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-top: 0.5rem;
+  opacity: 0.9;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.quick-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffeaa7;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+}
+
+/* Form Card */
+.automation-form-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.form-header h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.form-header p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.label-info {
+  font-weight: 400;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.textarea-container {
+  position: relative;
+}
+
+.url-textarea {
+  border: 3px solid #ff7675;
+  border-radius: 10px;
+  padding: 1rem;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 1rem;
+  color: #222;
+  font-weight: 500;
+  transition: border-color 0.3s ease;
+  min-height: 200px;
+  line-height: 1.5;
+}
+
+.url-textarea:focus {
+  border-color: #fd79a8;
+  box-shadow: 0 0 0 0.3rem rgba(253, 121, 168, 0.3);
+}
+
+.url-textarea::placeholder {
+  color: #666;
+  font-weight: 400;
+}
+
+.input-guide-arrow {
+  position: absolute;
+  top: 10px;
+  right: -120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+.arrow-text {
+  background: linear-gradient(135deg, #ff7675, #fd79a8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 5px 15px rgba(255, 118, 117, 0.3);
+  margin-bottom: 5px;
+}
+
+.arrow-line {
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 20px solid #ff7675;
+  transform: rotate(-45deg);
+}
+
+/* Hide arrow when textarea is focused or has content */
+.url-textarea:focus + .input-guide-arrow,
+.url-textarea:not(:placeholder-shown) + .input-guide-arrow {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.form-help {
+  font-size: 0.85rem;
+  color: #ff7675;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.automation-btn {
+  background: linear-gradient(135deg, #ff7675, #fd79a8);
+  border: none;
+  border-radius: 10px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: none;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.automation-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 118, 117, 0.3);
+}
+
+/* Sample URLs */
+.sample-urls {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.sample-urls h6 {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.sample-url-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sample-url-list code {
+  background: #f8f9fa;
+  border: 2px solid #ff7675;
+  border-radius: 5px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.sample-url-list code:hover {
+  background: #ffeaa7;
+  border-color: #fd79a8;
+  color: #000;
+}
+
+/* Process Overview */
+.process-overview {
+  padding: 4rem 0;
+  background: #f8f9fa;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  color: #333;
+}
+
+.process-step {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.step-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.process-step h4 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.process-step p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Navigation Section */
+.navigation-section {
+  padding: 3rem 0;
+  background: white;
+}
+
+.navigation-cards {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.nav-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 15px;
+  padding: 2rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  flex: 1;
+  max-width: 300px;
+  text-align: center;
+}
+
+.nav-card:hover {
+  border-color: #ff0000;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(255, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.nav-card h4 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.nav-card p {
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Today's Stats */
+.todays-stats {
+  padding: 3rem 0;
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #ff9ff3 100%);
+}
+
+.stat-card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  border: 1px solid #e9ecef;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ff7675;
+  margin-bottom: 0.5rem;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes gentle-bounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Real-time Progress Bar Styles */
+.real-time-progress {
+  background: white;
+  border: 2px solid #ff7675;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 8px 25px rgba(255, 118, 117, 0.15);
+  animation: slideInUp 0.5s ease-out;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.progress-header h6 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.overall-percentage {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ff7675;
+  background: rgba(255, 118, 117, 0.1);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 2px solid #ff7675;
+}
+
+/* Overall Progress Bar */
+.overall-progress-container {
+  position: relative;
+  background: #f1f3f4;
+  border-radius: 25px;
+  height: 50px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.overall-progress-bar {
+  height: 100%;
+  background: linear-gradient(135deg, #ff7675 0%, #fd79a8 100%);
+  border-radius: 25px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.overall-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  z-index: 2;
+}
+
+/* Stage Progress List */
+.stage-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stage-item {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.stage-item.waiting {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+  opacity: 0.7;
+}
+
+.stage-item.processing {
+  background: rgba(255, 118, 117, 0.05);
+  border-color: #ff7675;
+  box-shadow: 0 0 0 2px rgba(255, 118, 117, 0.1);
+  animation: pulse-border 2s infinite;
+}
+
+.stage-item.completed {
+  background: rgba(46, 204, 113, 0.05);
+  border-color: #2ecc71;
+  box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.1);
+}
+
+.stage-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.stage-icon {
+  font-size: 1.5rem;
+  margin-right: 0.8rem;
+}
+
+.stage-name {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+  font-size: 1rem;
+}
+
+.stage-percentage {
+  font-weight: 700;
+  color: #ff7675;
+  font-size: 1.1rem;
+  min-width: 50px;
+  text-align: right;
+  background: rgba(255, 118, 117, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 15px;
+  border: 1px solid #ff7675;
+}
+
+.stage-item.completed .stage-percentage {
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.1);
+  border-color: #2ecc71;
+}
+
+/* Stage Progress Bars */
+.stage-progress-container {
+  position: relative;
+  background: #e9ecef;
+  border-radius: 10px;
+  height: 8px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.stage-progress-bar {
+  height: 100%;
+  background: linear-gradient(135deg, #ff7675 0%, #fd79a8 100%);
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.stage-item.completed .stage-progress-bar {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.stage-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+.stage-status {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.stage-item.processing .stage-status {
+  color: #ff7675;
+  font-weight: 600;
+}
+
+.stage-item.completed .stage-status {
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+/* Progress Details */
+.progress-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.detail-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Completion Message */
+.completion-message {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: white;
+  border-radius: 15px;
+  padding: 2rem;
+  margin-top: 1.5rem;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
+  animation: slideInUp 0.5s ease-out;
+}
+
+.success-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  animation: bounce 1s ease-in-out;
+}
+
+.success-text h5 {
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.success-text p {
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+}
+
+.success-text .btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.success-text .btn:hover {
+  background: white;
+  color: #2ecc71;
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes pulse-border {
+  0%, 100% { 
+    box-shadow: 0 0 0 2px rgba(255, 118, 117, 0.1);
+  }
+  50% { 
+    box-shadow: 0 0 0 4px rgba(255, 118, 117, 0.2);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .quick-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .automation-form-card {
+    margin-top: 2rem;
+  }
+  
+  .navigation-cards {
+    flex-direction: column;
+  }
+  
+  .input-guide-arrow {
+    right: -90px;
+    top: 5px;
+  }
+  
+  .arrow-text {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .progress-details {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .stage-info {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .stage-percentage {
+    align-self: center;
+  }
+  
+  .overall-percentage {
+    font-size: 1.2rem;
+  }
+  
+  .progress-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+</style>

@@ -520,6 +520,6 @@ class BusinessParameterValidator < ActiveModel::EachValidator
 end
 
 # Specific validators for different business parameters
-class SermonParameterValidator < BusinessParameterValidator; end
-class VideoParameterValidator < BusinessParameterValidator; end
-class ChurchParameterValidator < BusinessParameterValidator; end
+# Note: These validators are now integrated into the main BusinessParameterValidator class
+# Use BusinessParameterValidator with the appropriate :parameter_type option instead
+# ChurchParameterValidator is now integrated into the main BusinessParameterValidator class

@@ -14,9 +14,9 @@ module SensitiveDataConcern
     # Data retention policies
     scope :expired_personal_data, -> { where('created_at < ?', 7.years.ago) }
     
-    # Validation for sensitive data
-    validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
-    validates :phone_number, format: { with: /\A[\d\-\s\+\(\)]+\z/ }, allow_blank: true
+    # Validation for sensitive data (only if attributes exist)
+    validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true, if: -> { respond_to?(:email) }
+    validates :phone_number, format: { with: /\A[\d\-\s\+\(\)]+\z/ }, allow_blank: true, if: -> { respond_to?(:phone_number) }
   end
 
   class_methods do
@@ -68,7 +68,11 @@ module SensitiveDataConcern
   end
 
   def contains_pii?
-    [email, phone_number, personal_notes].any?(&:present?)
+    pii_fields = []
+    pii_fields << email if respond_to?(:email)
+    pii_fields << phone_number if respond_to?(:phone_number)
+    pii_fields << personal_notes if respond_to?(:personal_notes)
+    pii_fields.any?(&:present?)
   end
 
   def data_retention_expired?
@@ -78,7 +82,7 @@ module SensitiveDataConcern
   private
 
   def anonymize_email
-    return nil unless email.present?
+    return nil unless respond_to?(:email) && email.present?
     
     # Keep domain for analytics while anonymizing user part
     domain = email.split('@').last
@@ -99,6 +103,7 @@ module SensitiveDataConcern
 
   def email_safe_for_export
     # For data export, provide the actual email if not anonymized
+    return '[NO EMAIL]' unless respond_to?(:email)
     anonymized_at? ? '[ANONYMIZED]' : email
   end
 
