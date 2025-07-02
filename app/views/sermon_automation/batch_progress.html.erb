@@ -1,0 +1,569 @@
+<div class="batch-progress-container">
+  <!-- Header -->
+  <div class="progress-header">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="page-title">
+            🎬 설교 자동화 진행 상황
+            <span class="batch-id">#<%= @batch.id.first(8) %></span>
+          </h1>
+          <p class="page-subtitle">
+            <%= @batch.total_urls %>개 URL → YouTube Shorts 자동 생성 및 업로드
+          </p>
+        </div>
+        <div class="col-md-4 text-end">
+          <div class="status-badge status-<%= @batch.status %>">
+            <%= @batch.status.upcase %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Overview -->
+  <div class="progress-overview">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Overall Progress -->
+        <div class="col-md-12">
+          <div class="progress-card main-progress">
+            <div class="progress-info">
+              <div class="progress-label">전체 진행률</div>
+              <div class="progress-percentage"><%= @progress_data[:progress_percentage] %>%</div>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" style="width: <%= @progress_data[:progress_percentage] %>%"></div>
+            </div>
+            <div class="progress-stats">
+              <%= @progress_data[:processed_urls] %> / <%= @progress_data[:total_urls] %> URL 처리 완료
+              <% if @progress_data[:estimated_completion] %>
+                · 예상 완료: <%= time_ago_in_words(@progress_data[:estimated_completion]) %> 후
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Stats -->
+      <div class="row">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @progress_data[:successful_sermons] %></div>
+              <div class="stat-label">설교 추출 성공</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">🎬</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @progress_data[:successful_videos] %></div>
+              <div class="stat-label">비디오 생성 완료</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">📱</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @progress_data[:successful_videos] %></div>
+              <div class="stat-label">YouTube 업로드</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card <%= 'error' if @progress_data[:failed_urls] > 0 %>">
+            <div class="stat-icon">❌</div>
+            <div class="stat-info">
+              <div class="stat-number"><%= @progress_data[:failed_urls] %></div>
+              <div class="stat-label">실패한 URL</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time Activity Log -->
+  <div class="activity-log">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="activity-card">
+            <div class="activity-header">
+              <h3>🔄 실시간 활동 로그</h3>
+              <div class="auto-refresh-indicator">
+                <span class="refresh-dot"></span>
+                자동 새로고침
+              </div>
+            </div>
+            <div class="activity-list" id="activity-list">
+              <% if @progress_data[:recent_activity]&.any? %>
+                <% @progress_data[:recent_activity].first(10).each do |activity| %>
+                <div class="activity-item">
+                  <div class="activity-time">
+                    <%= time_ago_in_words(Time.parse(activity[:timestamp].to_s)) %> 전
+                  </div>
+                  <div class="activity-message">
+                    <%= activity[:message] %>
+                  </div>
+                </div>
+                <% end %>
+              <% else %>
+                <div class="activity-item">
+                  <div class="activity-message">
+                    배치 처리를 시작하는 중...
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <%= link_to "🏠 홈으로 돌아가기", root_path, class: "btn btn-primary" %>
+          <%= link_to "📊 모니터링 대시보드", monitoring_path, class: "btn btn-outline-secondary" %>
+          <% if @batch.status == 'completed' %>
+            <button class="btn btn-success" onclick="window.open('https://studio.youtube.com/channel/UCdYIuVDuZsRd-G2jkGBxB4w/videos/short', '_blank')">
+              📱 YouTube Shorts 확인하기
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auto-refresh JavaScript -->
+<script>
+let refreshInterval;
+let isPageVisible = true;
+
+// Function to refresh progress data
+async function refreshProgress() {
+  if (!isPageVisible) return;
+  
+  try {
+    const response = await fetch('<%= batch_status_path(@batch.id) %>');
+    const data = await response.json();
+    
+    // Update progress percentage
+    const progressBar = document.querySelector('.progress-bar');
+    const progressPercentage = document.querySelector('.progress-percentage');
+    const progressStats = document.querySelector('.progress-stats');
+    
+    if (progressBar && progressPercentage && progressStats) {
+      progressBar.style.width = data.progress_percentage + '%';
+      progressPercentage.textContent = data.progress_percentage + '%';
+      progressStats.innerHTML = `${data.processed_urls} / ${data.total_urls} URL 처리 완료`;
+    }
+    
+    // Update stat numbers
+    document.querySelector('.stat-card:nth-child(1) .stat-number').textContent = data.successful_sermons;
+    document.querySelector('.stat-card:nth-child(2) .stat-number').textContent = data.successful_videos;
+    document.querySelector('.stat-card:nth-child(3) .stat-number').textContent = data.successful_videos;
+    document.querySelector('.stat-card:nth-child(4) .stat-number').textContent = data.failed_urls;
+    
+    // Update activity log
+    const activityList = document.getElementById('activity-list');
+    if (data.recent_activity && data.recent_activity.length > 0) {
+      activityList.innerHTML = data.recent_activity.slice(0, 10).map(activity => `
+        <div class="activity-item">
+          <div class="activity-time">방금 전</div>
+          <div class="activity-message">${activity.message}</div>
+        </div>
+      `).join('');
+    }
+    
+    // Update status badge
+    const statusBadge = document.querySelector('.status-badge');
+    if (statusBadge) {
+      statusBadge.className = `status-badge status-${data.status}`;
+      statusBadge.textContent = data.status.toUpperCase();
+    }
+    
+    // Stop refreshing if completed
+    if (data.status === 'completed' || data.status === 'failed') {
+      clearInterval(refreshInterval);
+      
+      if (data.status === 'completed') {
+        // Show completion message
+        const completionMessage = document.createElement('div');
+        completionMessage.className = 'completion-notification';
+        completionMessage.innerHTML = `
+          <div class="notification-content">
+            🎉 배치 처리가 완료되었습니다!<br>
+            <small>${data.successful_videos}개의 YouTube Shorts가 업로드되었습니다.</small>
+          </div>
+        `;
+        document.body.appendChild(completionMessage);
+        
+        setTimeout(() => {
+          completionMessage.remove();
+        }, 5000);
+      }
+    }
+    
+    console.log('Progress updated:', data);
+    
+  } catch (error) {
+    console.error('Failed to refresh progress:', error);
+  }
+}
+
+// Page visibility handling
+document.addEventListener('visibilitychange', function() {
+  isPageVisible = !document.hidden;
+  if (isPageVisible) {
+    refreshProgress();
+  }
+});
+
+// Start auto-refresh
+document.addEventListener('DOMContentLoaded', function() {
+  refreshProgress(); // Initial load
+  refreshInterval = setInterval(refreshProgress, 5000); // Every 5 seconds
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+  }
+});
+</script>
+
+<style>
+/* Batch Progress Styles */
+.batch-progress-container {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.progress-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  padding: 2rem 0;
+  color: white;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.batch-id {
+  font-size: 1rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-started, .status-processing {
+  background: #ffc107;
+  color: #000;
+}
+
+.status-completed {
+  background: #28a745;
+  color: white;
+}
+
+.status-failed {
+  background: #dc3545;
+  color: white;
+}
+
+/* Progress Overview */
+.progress-overview {
+  padding: 2rem 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.progress-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 15px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.main-progress .progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.progress-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.progress-percentage {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.progress-bar-container {
+  background: #e9ecef;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #28a745, #20c997);
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.progress-stats {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card.error {
+  background: #ffe6e6;
+  border: 2px solid #ff9999;
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card.error .stat-number {
+  color: #dc3545;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Activity Log */
+.activity-log {
+  padding: 2rem 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.activity-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 15px;
+  padding: 2rem;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.activity-header h3 {
+  color: #333;
+  margin: 0;
+}
+
+.auto-refresh-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.refresh-dot {
+  width: 8px;
+  height: 8px;
+  background: #28a745;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.activity-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-time {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: #999;
+  width: 80px;
+}
+
+.activity-message {
+  flex: 1;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* Action Buttons */
+.action-buttons {
+  padding: 3rem 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn {
+  margin: 0 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.btn-outline-secondary {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Completion Notification */
+.completion-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  z-index: 1000;
+  animation: slideIn 0.5s ease;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .progress-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .activity-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .btn {
+    display: block;
+    margin: 0.5rem 0;
+    width: 100%;
+  }
+}
+</style>

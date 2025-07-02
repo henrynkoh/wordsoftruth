@@ -173,18 +173,44 @@ class VideoGeneratorService
     sanitized
   end
 
-  def execute_python_with_config(_script_name, _config_file)
-    # This is a placeholder for secure Python execution
-    # In a real implementation, you would:
-    # 1. Use pre-written, vetted Python scripts
-    # 2. Pass configuration via secure files (not code injection)
-    # 3. Use containers or sandboxed environments
-    # 4. Validate all inputs thoroughly
-
-    Rails.logger.warn "Python execution is disabled for security. Implement proper sandboxed execution."
-
-    # Return a mock success for now
-    { success: true, message: "Mock execution - implement secure Python runner" }
+  def execute_python_with_config(script_name, config_file)
+    script_path = Rails.root.join("scripts", script_name)
+    
+    unless File.exist?(script_path)
+      raise VideoProcessingError, "Python script not found: #{script_path}"
+    end
+    
+    unless File.exist?(config_file)
+      raise VideoProcessingError, "Config file not found: #{config_file}"
+    end
+    
+    # Use secure command execution with timeout
+    command = [
+      'timeout', '300', # 5 minute timeout
+      'python3', 
+      script_path.to_s,
+      config_file.to_s
+    ]
+    
+    Rails.logger.info "Executing: #{command.join(' ')}"
+    
+    stdout, stderr, status = Open3.capture3(*command)
+    
+    unless status.success?
+      Rails.logger.error "Python execution failed: #{stderr}"
+      raise VideoProcessingError, "Video generation failed: #{stderr}"
+    end
+    
+    Rails.logger.info "Python execution completed successfully"
+    Rails.logger.info "Output: #{stdout}" if stdout.present?
+    
+    { success: true, output: stdout }
+  rescue Errno::ENOENT => e
+    Rails.logger.error "Command not found: #{e.message}"
+    raise VideoProcessingError, "Python or timeout command not available"
+  rescue StandardError => e
+    Rails.logger.error "Unexpected error in Python execution: #{e.message}"
+    raise VideoProcessingError, "Video generation failed: #{e.message}"
   end
 
   def cleanup_temp_files
@@ -199,19 +225,112 @@ class VideoGeneratorService
     end
   end
 
-  def upload_to_youtube_api(_video_path)
-    # TODO: Implement actual YouTube upload logic using Google API client
-    # This should use proper OAuth2 authentication and the YouTube Data API v3
+  def upload_to_youtube_api(video_path)
+    Rails.logger.info "Uploading video #{@video.id} to YouTube Shorts"
+    
+    # Prepare metadata for YouTube upload
+    video_metadata = {
+      title: generate_video_title,
+      content: @sermon.interpretation,
+      scripture: @sermon.scripture,
+      church: @sermon.church,
+      pastor: @sermon.pastor,
+      source_url: @sermon.source_url
+    }
+    
+    # Use the new YouTube upload service
+    result = YoutubeUploadService.upload_shorts(video_path, video_metadata)
+    
+    if result[:success]
+      # Update video record with YouTube information
+      @video.update!(
+        youtube_id: result[:youtube_id],
+        youtube_url: result[:youtube_url],
+        status: 'uploaded'
+      )
+      
+      Rails.logger.info "Successfully uploaded video #{@video.id} to YouTube: #{result[:youtube_url]}"
+      return result[:youtube_id]
+    else
+      # Handle upload failure
+      error_message = result[:error] || "Unknown upload error"
+      
+      if result[:auth_required]
+        Rails.logger.error "YouTube authentication required for video #{@video.id}"
+        @video.update!(status: 'auth_required', error_message: error_message)
+      else
+        Rails.logger.error "YouTube upload failed for video #{@video.id}: #{error_message}"
+        @video.update!(status: 'upload_failed', error_message: error_message)
+      end
+      
+      raise UploadError, "YouTube upload failed: #{error_message}"
+    end
+    
+  rescue => e
+    Rails.logger.error "Unexpected YouTube upload error for video #{@video.id}: #{e.message}"
+    @video.update!(status: 'upload_failed', error_message: e.message)
+    raise UploadError, "Upload failed: #{e.message}"
+  end
 
-    Rails.logger.info "Mock YouTube upload for video #{@video.id}"
+  private
 
-    # For now, return a mock YouTube ID
-    # In real implementation, this would:
-    # 1. Authenticate with YouTube API
-    # 2. Upload the video file
-    # 3. Set proper metadata (title, description, tags)
-    # 4. Return the actual YouTube video ID
+  def generate_video_title
+    title_parts = []
+    title_parts << @sermon.title if @sermon.title.present?
+    title_parts << @sermon.pastor if @sermon.pastor.present?
+    title_parts << @sermon.church if @sermon.church.present?
+    
+    title = title_parts.join(" - ")
+    title.truncate(100) # YouTube title limit
+  end
 
-    "mock_youtube_id_#{@unique_id}"
+  def generate_video_description
+    description = []
+    description << @sermon.title if @sermon.title.present?
+    description << ""
+    description << "Scripture: #{@sermon.scripture}" if @sermon.scripture.present?
+    description << ""
+    
+    if @sermon.interpretation.present?
+      description << @sermon.interpretation.truncate(500)
+      description << ""
+    end
+    
+    description << "Pastor: #{@sermon.pastor}" if @sermon.pastor.present?
+    description << "Church: #{@sermon.church}" if @sermon.church.present?
+    description << ""
+    description << "#Sermon #Faith #Christianity #Bible"
+    
+    if @sermon.church.present?
+      church_tag = @sermon.church.gsub(/\s+/, '').gsub(/[^a-zA-Z0-9]/, '')
+      description << "##{church_tag}" if church_tag.present?
+    end
+    
+    description.join("\n").truncate(5000) # YouTube description limit
+  end
+
+  def generate_video_tags
+    tags = ['sermon', 'faith', 'christianity', 'bible', 'shorts']
+    
+    if @sermon.church.present?
+      church_tag = @sermon.church.downcase.gsub(/\s+/, '').gsub(/[^a-z0-9]/, '')
+      tags << church_tag if church_tag.present? && church_tag.length > 2
+    end
+    
+    if @sermon.pastor.present?
+      pastor_tag = @sermon.pastor.downcase.gsub(/\s+/, '').gsub(/[^a-z0-9]/, '')
+      tags << pastor_tag if pastor_tag.present? && pastor_tag.length > 2
+    end
+    
+    # Extract keywords from scripture
+    if @sermon.scripture.present?
+      scripture_words = @sermon.scripture.split(/\s+/)
+                                        .select { |w| w.length > 3 }
+                                        .map { |w| w.downcase.gsub(/[^a-z]/, '') }
+                                        .select { |w| w.length > 2 }
+      tags.concat(scripture_words.first(3))
+    end
+    
+    tags.uniq.first(10) # YouTube allows max 10 tags
   end
 end

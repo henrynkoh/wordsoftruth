@@ -1,0 +1,35 @@
+<div style="max-width: 800px; margin: 50px auto; padding: 20px; font-family: Arial, sans-serif;">
+  <h1>🎬 YouTube Authorization Result</h1>
+  
+  <% if @success %>
+    <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h2>✅ Authorization Successful!</h2>
+      <p>Your YouTube tokens have been generated successfully.</p>
+    </div>
+    
+    <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; border-radius: 5px; margin: 20px 0;">
+      <h3>🔑 Access Token:</h3>
+      <code style="background: #e9ecef; padding: 10px; display: block; word-break: break-all; margin: 10px 0;"><%= @access_token %></code>
+      
+      <h3>🔄 Refresh Token:</h3>
+      <code style="background: #e9ecef; padding: 10px; display: block; word-break: break-all; margin: 10px 0;"><%= @refresh_token %></code>
+    </div>
+    
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3>📋 Next Steps:</h3>
+      <p>Copy these environment variables and run them in your terminal:</p>
+      <pre style="background: #f8f9fa; padding: 10px; border-radius: 3px;">export YOUTUBE_ACCESS_TOKEN="<%= @access_token %>"
+export YOUTUBE_REFRESH_TOKEN="<%= @refresh_token %>"</pre>
+      
+      <p>Then you can test YouTube upload!</p>
+    </div>
+    
+  <% else %>
+    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h2>❌ Authorization Failed</h2>
+      <p><%= @error %></p>
+    </div>
+  <% end %>
+  
+  <a href="/" style="display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px;">← Back to Dashboard</a>
+</div>

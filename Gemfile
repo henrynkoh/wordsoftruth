@@ -76,6 +76,10 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
+  # YouTube API integration (optional for development)
+  gem "google-apis-youtube_v3", require: false
+  gem "googleauth", require: false
+
   # Testing framework
   gem "rspec-rails"
   gem "factory_bot_rails"
