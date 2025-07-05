@@ -1,0 +1,289 @@
+<% content_for :title, "📝 텍스트 노트" %>
+
+<div class="container mx-auto px-4 py-6">
+  <!-- Header with mobile-first design -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">📝 영적 텍스트 노트</h1>
+      <p class="text-gray-600">손으로 쓴 메모와 영감을 YouTube Shorts로 변환</p>
+    </div>
+    
+    <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-2">
+      <%= link_to new_text_note_path, 
+          class: "btn btn-primary text-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" do %>
+        ✍️ 새 노트 작성
+      <% end %>
+      
+      <%= link_to templates_text_notes_path, 
+          class: "btn btn-secondary text-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors",
+          remote: true do %>
+        📋 템플릿 보기
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Stats Cards (Mobile-friendly) -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-2xl font-bold text-blue-600"><%= @text_notes.count %></div>
+      <div class="text-sm text-gray-600">총 노트</div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-2xl font-bold text-green-600">
+        <%= @status_counts['completed'] || 0 %>
+      </div>
+      <div class="text-sm text-gray-600">완성된 영상</div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-2xl font-bold text-yellow-600">
+        <%= @status_counts['processing'] || 0 %>
+      </div>
+      <div class="text-sm text-gray-600">생성 중</div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <div class="text-2xl font-bold text-red-600">
+        <%= @status_counts['failed'] || 0 %>
+      </div>
+      <div class="text-sm text-gray-600">실패</div>
+    </div>
+  </div>
+
+  <!-- Filter Controls (Mobile-optimized) -->
+  <div class="bg-white rounded-lg shadow mb-6 p-4">
+    <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Theme Filter -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">테마별 필터</label>
+        <select id="theme-filter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="">모든 테마</option>
+          <option value="golden_light" <%= 'selected' if params[:theme] == 'golden_light' %>>🌟 찬양과 경배</option>
+          <option value="peaceful_blue" <%= 'selected' if params[:theme] == 'peaceful_blue' %>>🕯️ 기도와 묵상</option>
+          <option value="sunset_worship" <%= 'selected' if params[:theme] == 'sunset_worship' %>>🌅 저녁 경건</option>
+          <option value="cross_pattern" <%= 'selected' if params[:theme] == 'cross_pattern' %>>✝️ 성경과 믿음</option>
+          <option value="mountain_majesty" <%= 'selected' if params[:theme] == 'mountain_majesty' %>>⛰️ 힘과 인내</option>
+          <option value="flowing_river" <%= 'selected' if params[:theme] == 'flowing_river' %>>🌊 새로운 생명</option>
+        </select>
+      </div>
+      
+      <!-- Status Filter -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">상태별 필터</label>
+        <select id="status-filter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="">모든 상태</option>
+          <option value="draft" <%= 'selected' if params[:status] == 'draft' %>>📝 초안</option>
+          <option value="processing" <%= 'selected' if params[:status] == 'processing' %>>⚙️ 처리 중</option>
+          <option value="completed" <%= 'selected' if params[:status] == 'completed' %>>✅ 완료</option>
+          <option value="failed" <%= 'selected' if params[:status] == 'failed' %>>❌ 실패</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text Notes Grid (Mobile-responsive) -->
+  <% if @text_notes.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @text_notes.each do |note| %>
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+          <!-- Header -->
+          <div class="p-4 border-b border-gray-100">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <h3 class="font-semibold text-gray-900 truncate">
+                  <%= note.title.presence || "제목 없음" %>
+                </h3>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="theme-badge <%= note.theme %> text-xs px-2 py-1 rounded-full">
+                    <%= get_theme_display(note.theme) %>
+                  </span>
+                  <span class="status-badge <%= note.status %> text-xs px-2 py-1 rounded-full">
+                    <%= get_status_display(note.status) %>
+                  </span>
+                </div>
+              </div>
+              
+              <div class="dropdown relative">
+                <button class="text-gray-400 hover:text-gray-600" onclick="toggleDropdown(this)">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01" />
+                  </svg>
+                </button>
+                
+                <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10">
+                  <%= link_to note, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+                    👁️ 보기
+                  <% end %>
+                  <%= link_to edit_text_note_path(note), class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+                    ✏️ 편집
+                  <% end %>
+                  <% if note.draft? || note.failed? %>
+                    <%= link_to generate_video_text_note_path(note), method: :post, 
+                        class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+                      🎬 영상 생성
+                    <% end %>
+                  <% end %>
+                  <% if note.completed? && note.video_file_path.present? %>
+                    <%= link_to upload_to_youtube_text_note_path(note), method: :post, 
+                        class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+                      📺 YouTube 업로드
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Content Preview -->
+          <div class="p-4">
+            <p class="text-gray-700 text-sm line-clamp-3">
+              <%= truncate(note.content, length: 100) %>
+            </p>
+            
+            <div class="mt-3 flex justify-between items-center text-xs text-gray-500">
+              <span><%= note.korean_character_count %>자</span>
+              <span><%= note.estimated_duration&.round(1) %>초 예상</span>
+              <span><%= time_ago_in_words(note.created_at) %> 전</span>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="px-4 pb-4">
+            <%= link_to note, 
+                class: "w-full btn btn-primary bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition-colors block" do %>
+              자세히 보기
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="mt-8 flex justify-center text-gray-500 text-sm">
+      최대 20개의 노트가 표시됩니다
+    </div>
+  <% else %>
+    <!-- Empty State -->
+    <div class="text-center py-12">
+      <div class="text-6xl mb-4">📝</div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">아직 텍스트 노트가 없습니다</h3>
+      <p class="text-gray-600 mb-6">첫 번째 영적 노트를 작성하여 YouTube Shorts를 만들어보세요</p>
+      
+      <%= link_to new_text_note_path, 
+          class: "btn btn-primary bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block" do %>
+        ✍️ 첫 노트 작성하기
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Mobile-friendly JavaScript -->
+<script>
+// Theme display helper
+function getThemeDisplay(theme) {
+  const themes = {
+    'golden_light': '🌟 찬양과 경배',
+    'peaceful_blue': '🕯️ 기도와 묵상',
+    'sunset_worship': '🌅 저녁 경건',
+    'cross_pattern': '✝️ 성경과 믿음',
+    'mountain_majesty': '⛰️ 힘과 인내',
+    'flowing_river': '🌊 새로운 생명',
+    'wheat_field': '🌾 풍성한 축복',
+    'shepherd_field': '🐑 인도하심',
+    'temple_light': '🏛️ 거룩한 성전',
+    'city_lights': '🌃 세상의 빛'
+  };
+  return themes[theme] || theme;
+}
+
+// Status display helper  
+function getStatusDisplay(status) {
+  const statuses = {
+    'draft': '📝 초안',
+    'processing': '⚙️ 처리 중',
+    'completed': '✅ 완료',
+    'failed': '❌ 실패'
+  };
+  return statuses[status] || status;
+}
+
+// Dropdown toggle
+function toggleDropdown(button) {
+  const dropdown = button.nextElementSibling;
+  dropdown.classList.toggle('hidden');
+  
+  // Close other dropdowns
+  document.querySelectorAll('.dropdown-menu').forEach(menu => {
+    if (menu !== dropdown) {
+      menu.classList.add('hidden');
+    }
+  });
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      menu.classList.add('hidden');
+    });
+  }
+});
+
+// Filter functionality
+document.getElementById('theme-filter').addEventListener('change', function() {
+  updateFilters();
+});
+
+document.getElementById('status-filter').addEventListener('change', function() {
+  updateFilters();
+});
+
+function updateFilters() {
+  const theme = document.getElementById('theme-filter').value;
+  const status = document.getElementById('status-filter').value;
+  
+  const params = new URLSearchParams();
+  if (theme) params.append('theme', theme);
+  if (status) params.append('status', status);
+  
+  window.location.href = '/text_notes?' + params.toString();
+}
+</script>
+
+<style>
+/* Mobile-optimized styles */
+.theme-badge {
+  font-size: 0.75rem;
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.theme-badge.golden_light { background-color: #fef3c7; color: #d97706; }
+.theme-badge.peaceful_blue { background-color: #dbeafe; color: #2563eb; }
+.theme-badge.sunset_worship { background-color: #fed7aa; color: #ea580c; }
+.theme-badge.cross_pattern { background-color: #f3e8ff; color: #7c3aed; }
+
+.status-badge {
+  font-size: 0.75rem;
+}
+
+.status-badge.draft { background-color: #f3f4f6; color: #6b7280; }
+.status-badge.processing { background-color: #fef3c7; color: #d97706; }
+.status-badge.completed { background-color: #d1fae5; color: #10b981; }
+.status-badge.failed { background-color: #fee2e2; color: #ef4444; }
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+</style>

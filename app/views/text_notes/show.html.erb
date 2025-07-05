@@ -1,0 +1,320 @@
+<% content_for :title, "📖 #{@text_note.title.presence || '영적 노트'}" %>
+
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+  <!-- Header Navigation -->
+  <div class="mb-6">
+    <%= link_to text_notes_path, class: "text-blue-600 hover:text-blue-800 text-sm flex items-center mb-4" do %>
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      텍스트 노트 목록으로 돌아가기
+    <% end %>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <div class="flex-1">
+          <h1 class="text-2xl sm:text-3xl font-bold mb-2">
+            <%= @text_note.title.presence || "제목 없음" %>
+          </h1>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20">
+              <%= get_theme_emoji(@text_note.theme) %> <%= get_theme_display(@text_note.theme) %>
+            </span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20">
+              <%= get_note_type_emoji(@text_note.note_type) %> <%= get_note_type_display(@text_note.note_type) %>
+            </span>
+          </div>
+          <div class="text-sm opacity-90">
+            <%= time_ago_in_words(@text_note.created_at) %> 전 작성
+            <% if @text_note.updated_at != @text_note.created_at %>
+              • <%= time_ago_in_words(@text_note.updated_at) %> 전 수정
+            <% end %>
+          </div>
+        </div>
+        
+        <!-- Status Badge -->
+        <div class="mt-4 sm:mt-0">
+          <span class="status-badge-large <%= @text_note.status %> px-4 py-2 rounded-full text-sm font-medium">
+            <%= get_status_display(@text_note.status) %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Body -->
+    <div class="p-6">
+      <!-- Text Content -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">📝 노트 내용</h3>
+        <div class="bg-gray-50 rounded-lg p-6 border-l-4 border-blue-500">
+          <div class="prose max-w-none">
+            <p class="text-gray-800 leading-relaxed whitespace-pre-line text-base sm:text-lg">
+              <%= @text_note.content %>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Enhanced Content (if available) -->
+        <% if @text_note.enhanced_content.present? && @text_note.enhanced_content != @text_note.content %>
+          <div class="mt-6">
+            <h4 class="text-md font-semibold text-gray-700 mb-3">🤖 AI 향상된 내용</h4>
+            <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-300">
+              <p class="text-gray-800 leading-relaxed whitespace-pre-line">
+                <%= @text_note.enhanced_content %>
+              </p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Metadata Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-gray-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-blue-600"><%= @text_note.korean_character_count %></div>
+          <div class="text-sm text-gray-600">한국어 글자수</div>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-green-600">
+            <%= @text_note.estimated_duration&.round(1) || "계산중" %>초
+          </div>
+          <div class="text-sm text-gray-600">예상 영상 길이</div>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-600">
+            <%= @text_note.content.length %>
+          </div>
+          <div class="text-sm text-gray-600">총 글자수</div>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-orange-600">
+            <%= @text_note.content.split(/\s+/).length %>
+          </div>
+          <div class="text-sm text-gray-600">단어수</div>
+        </div>
+      </div>
+
+      <!-- Video Status Section -->
+      <div class="border-t pt-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🎬 영상 상태</h3>
+        
+        <% case @text_note.status %>
+        <% when 'draft' %>
+          <div class="bg-gray-50 rounded-lg p-6 text-center">
+            <div class="text-4xl mb-3">📝</div>
+            <h4 class="text-lg font-semibold text-gray-700 mb-2">초안 상태</h4>
+            <p class="text-gray-600 mb-4">영상 생성을 시작하려면 아래 버튼을 클릭하세요.</p>
+            <%= link_to generate_video_text_note_path(@text_note), method: :post,
+                class: "inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" do %>
+              🎬 영상 생성 시작하기
+            <% end %>
+          </div>
+          
+        <% when 'processing' %>
+          <div class="bg-yellow-50 rounded-lg p-6 text-center">
+            <div class="text-4xl mb-3">⚙️</div>
+            <h4 class="text-lg font-semibold text-yellow-700 mb-2">영상 생성 중...</h4>
+            <p class="text-yellow-600 mb-4">AI가 텍스트를 분석하고 영상을 생성하고 있습니다. 잠시만 기다려주세요.</p>
+            <div class="w-full bg-yellow-200 rounded-full h-2">
+              <div class="bg-yellow-600 h-2 rounded-full animate-pulse" style="width: 65%"></div>
+            </div>
+            <p class="text-sm text-yellow-600 mt-2">예상 소요 시간: 1-2분</p>
+          </div>
+          
+        <% when 'completed' %>
+          <div class="bg-green-50 rounded-lg p-6">
+            <div class="text-center mb-4">
+              <div class="text-4xl mb-3">✅</div>
+              <h4 class="text-lg font-semibold text-green-700 mb-2">영상 생성 완료!</h4>
+              <p class="text-green-600">YouTube Shorts 영상이 성공적으로 생성되었습니다.</p>
+            </div>
+            
+            <% if @text_note.processing_metadata.present? %>
+              <div class="bg-white rounded-lg p-4 mb-4">
+                <h5 class="font-medium text-gray-900 mb-2">생성 정보</h5>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span class="text-gray-600">생성 일시:</span>
+                    <span class="font-medium"><%= l(@text_note.processing_metadata['generated_at']&.to_datetime, format: :short) if @text_note.processing_metadata['generated_at'] %></span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">파일 크기:</span>
+                    <span class="font-medium"><%= number_to_human_size(@text_note.processing_metadata['file_size']) if @text_note.processing_metadata['file_size'] %></span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">사용된 테마:</span>
+                    <span class="font-medium"><%= get_theme_display(@text_note.processing_metadata['theme_used']) if @text_note.processing_metadata['theme_used'] %></span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">AI 향상:</span>
+                    <span class="font-medium"><%= @text_note.processing_metadata['enhanced_content_used'] ? '적용됨' : '미적용' %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+              <% if @text_note.video_file_path.present? && File.exist?(@text_note.video_file_path) %>
+                <a href="#" onclick="playVideo()" class="flex-1 bg-green-600 text-white text-center py-3 px-6 rounded-lg hover:bg-green-700 transition-colors">
+                  ▶️ 영상 미리보기
+                </a>
+              <% end %>
+              
+              <% if @text_note.youtube_video_id.blank? %>
+                <%= link_to upload_to_youtube_text_note_path(@text_note), method: :post,
+                    class: "flex-1 bg-red-600 text-white text-center py-3 px-6 rounded-lg hover:bg-red-700 transition-colors" do %>
+                  📺 YouTube 업로드
+                <% end %>
+              <% else %>
+                <a href="https://youtube.com/shorts/<%= @text_note.youtube_video_id %>" target="_blank"
+                   class="flex-1 bg-red-600 text-white text-center py-3 px-6 rounded-lg hover:bg-red-700 transition-colors">
+                  📺 YouTube에서 보기
+                </a>
+              <% end %>
+            </div>
+          </div>
+          
+        <% when 'failed' %>
+          <div class="bg-red-50 rounded-lg p-6 text-center">
+            <div class="text-4xl mb-3">❌</div>
+            <h4 class="text-lg font-semibold text-red-700 mb-2">영상 생성 실패</h4>
+            <p class="text-red-600 mb-4">영상 생성 중 오류가 발생했습니다. 다시 시도해주세요.</p>
+            
+            <% if @text_note.processing_metadata.present? && @text_note.processing_metadata['error'] %>
+              <div class="bg-white rounded-lg p-4 mb-4 text-left">
+                <h5 class="font-medium text-red-700 mb-2">오류 상세:</h5>
+                <p class="text-sm text-red-600 font-mono bg-red-50 p-2 rounded">
+                  <%= @text_note.processing_metadata['error'] %>
+                </p>
+              </div>
+            <% end %>
+            
+            <%= link_to generate_video_text_note_path(@text_note), method: :post,
+                class: "inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" do %>
+              🔄 다시 시도하기
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="border-t bg-gray-50 px-6 py-4">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <%= link_to edit_text_note_path(@text_note), 
+            class: "flex-1 bg-blue-600 text-white text-center py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors" do %>
+          ✏️ 편집하기
+        <% end %>
+        
+        <%= link_to text_notes_path, 
+            class: "flex-1 bg-gray-600 text-white text-center py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors" do %>
+          📋 목록으로
+        <% end %>
+        
+        <%= link_to @text_note, method: :delete, 
+            confirm: "정말로 이 텍스트 노트를 삭제하시겠습니까?",
+            class: "flex-1 bg-red-600 text-white text-center py-3 px-6 rounded-lg hover:bg-red-700 transition-colors" do %>
+          🗑️ 삭제하기
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal (if video exists) -->
+<% if @text_note.completed? && @text_note.video_file_path.present? %>
+  <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg max-w-md w-full">
+        <div class="p-4 border-b">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold">영상 미리보기</h3>
+            <button onclick="closeVideo()" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="p-4">
+          <video id="preview-video" class="w-full rounded-lg" controls>
+            <source src="/videos/<%= File.basename(@text_note.video_file_path) %>" type="video/mp4">
+            브라우저에서 비디오를 지원하지 않습니다.
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<script>
+function playVideo() {
+  document.getElementById('video-modal').classList.remove('hidden');
+  const video = document.getElementById('preview-video');
+  video.currentTime = 0;
+  video.play();
+}
+
+function closeVideo() {
+  document.getElementById('video-modal').classList.add('hidden');
+  const video = document.getElementById('preview-video');
+  video.pause();
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    closeVideo();
+  }
+});
+
+// Auto-refresh status for processing notes
+<% if @text_note.processing? %>
+  setTimeout(function() {
+    location.reload();
+  }, 30000); // Refresh every 30 seconds
+<% end %>
+</script>
+
+<style>
+.status-badge-large {
+  font-weight: 600;
+}
+
+.status-badge-large.draft { 
+  background-color: #f3f4f6; 
+  color: #6b7280; 
+}
+
+.status-badge-large.processing { 
+  background-color: #fef3c7; 
+  color: #d97706; 
+}
+
+.status-badge-large.completed { 
+  background-color: #d1fae5; 
+  color: #10b981; 
+}
+
+.status-badge-large.failed { 
+  background-color: #fee2e2; 
+  color: #ef4444; 
+}
+
+.prose p {
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+</style>

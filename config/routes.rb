@@ -39,6 +39,32 @@ Rails.application.routes.draw do
   # YouTube OAuth callback
   get '/auth/youtube/callback', to: 'auth#youtube_callback'
   
+  # Text Notes routes (NEW - Personal spiritual content)
+  resources :text_notes do
+    member do
+      post :generate_video
+      post :upload_to_youtube
+    end
+    
+    collection do
+      post :quick_create
+      get :templates
+      post :theme_suggestions
+    end
+  end
+  
+  # API routes for mobile integration
+  namespace :api do
+    namespace :v1 do
+      resources :text_notes, only: [:create, :show, :index] do
+        collection do
+          get :templates
+          post :theme_suggestions
+        end
+      end
+    end
+  end
+  
   # Health check routes
   get '/health', to: 'health#check'
   get '/health/detailed', to: 'health#detailed'

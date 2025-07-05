@@ -1,0 +1,420 @@
+<% content_for :title, "✏️ 노트 편집 - #{@text_note.title.presence || '제목 없음'}" %>
+
+<div class="container mx-auto px-4 py-6 max-w-2xl">
+  <!-- Header -->
+  <div class="mb-6">
+    <%= link_to @text_note, class: "text-blue-600 hover:text-blue-800 text-sm flex items-center mb-3" do %>
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      노트로 돌아가기
+    <% end %>
+    
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">✏️ 영적 노트 편집</h1>
+    <p class="text-gray-600">내용을 수정하면 새로운 영상이 생성됩니다.</p>
+  </div>
+
+  <!-- Current Status Alert -->
+  <% if @text_note.processing? %>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+        <div>
+          <h4 class="text-yellow-800 font-semibold">영상 생성 중</h4>
+          <p class="text-yellow-700 text-sm">현재 영상이 생성되고 있습니다. 편집하면 진행 중인 작업이 취소되고 새로 시작됩니다.</p>
+        </div>
+      </div>
+    </div>
+  <% elsif @text_note.completed? %>
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <h4 class="text-green-800 font-semibold">영상 생성 완료</h4>
+          <p class="text-green-700 text-sm">내용을 변경하면 기존 영상이 교체되고 새로운 영상이 생성됩니다.</p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Form -->
+  <%= form_with model: @text_note, local: true, class: "space-y-6" do |form| %>
+    <% if @text_note.errors.any? %>
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <h4 class="text-red-800 font-semibold mb-2">다음 오류를 수정해주세요:</h4>
+        <ul class="text-red-700 text-sm space-y-1">
+          <% @text_note.errors.full_messages.each do |message| %>
+            <li>• <%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Title (Optional) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        제목 (선택사항)
+      </label>
+      <%= form.text_field :title, 
+          placeholder: "예: 오늘의 기도, 성경 묵상 등...", 
+          class: "w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" %>
+    </div>
+
+    <!-- Main Text Content -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        영적 노트 내용 <span class="text-red-500">*</span>
+      </label>
+      <%= form.text_area :content, 
+          rows: 10,
+          placeholder: "마음에 떠오른 영적 생각, 기도 제목, 성경 묵상, 간증 등을 자유롭게 적어주세요...", 
+          class: "w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+          id: "content-textarea" %>
+      
+      <!-- Character Counter -->
+      <div class="flex justify-between items-center mt-2 text-sm text-gray-500">
+        <span id="char-count">0자 / 800자</span>
+        <span id="estimated-duration">예상 길이: 10초</span>
+      </div>
+    </div>
+
+    <!-- Note Type Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-3">
+        노트 유형
+      </label>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <% TextNote.note_types.each do |key, value| %>
+          <label class="relative">
+            <%= form.radio_button :note_type, key, 
+                class: "sr-only peer",
+                checked: (@text_note.note_type == key) %>
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
+              <div class="text-lg mb-1"><%= get_note_type_emoji(key) %></div>
+              <div class="text-sm font-medium"><%= get_note_type_display(key) %></div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Theme Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-3">
+        영상 테마
+      </label>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <!-- Auto Detect Option -->
+        <label class="relative">
+          <%= form.radio_button :theme, 'auto_detect', 
+              class: "sr-only peer",
+              checked: (@text_note.theme == 'auto_detect') %>
+          <div class="border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
+            <div class="text-lg mb-1">🤖</div>
+            <div class="text-sm font-medium">AI 자동 선택</div>
+            <div class="text-xs text-gray-500">추천</div>
+          </div>
+        </label>
+        
+        <!-- Manual Theme Options -->
+        <% TextNote.themes.reject { |k, v| k == 'auto_detect' }.each do |key, value| %>
+          <label class="relative">
+            <%= form.radio_button :theme, key, 
+                class: "sr-only peer",
+                checked: (@text_note.theme == key) %>
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
+              <div class="text-lg mb-1"><%= get_theme_emoji(key) %></div>
+              <div class="text-sm font-medium"><%= get_theme_display(key) %></div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- AI Preview (Dynamic) -->
+    <div id="ai-preview" class="bg-gray-50 rounded-lg p-4 hidden">
+      <h4 class="font-semibold text-gray-900 mb-2">🤖 AI 분석 미리보기</h4>
+      <div class="space-y-2 text-sm">
+        <div>감지된 테마: <span id="detected-theme" class="font-medium"></span></div>
+        <div>예상 노트 유형: <span id="detected-type" class="font-medium"></span></div>
+        <div>한국어 글자수: <span id="korean-chars" class="font-medium"></span></div>
+        <div>예상 영상 길이: <span id="video-duration" class="font-medium"></span></div>
+      </div>
+    </div>
+
+    <!-- Change Impact Warning -->
+    <% if @text_note.completed? || @text_note.processing? %>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-yellow-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <div>
+            <h4 class="text-yellow-800 font-semibold mb-1">변경사항 안내</h4>
+            <p class="text-yellow-700 text-sm">내용을 변경하고 저장하면:</p>
+            <ul class="text-yellow-700 text-sm mt-2 space-y-1">
+              <li>• 새로운 영상이 자동으로 생성됩니다</li>
+              <li>• 기존 영상은 교체됩니다</li>
+              <li>• 생성에는 1-2분 정도 소요됩니다</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Submit Buttons -->
+    <div class="flex flex-col sm:flex-row gap-3">
+      <%= form.submit "💾 변경사항 저장", 
+          class: "flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors font-medium",
+          data: { confirm: @text_note.completed? ? "내용을 변경하면 새로운 영상이 생성됩니다. 계속하시겠습니까?" : nil } %>
+      
+      <%= link_to "취소", @text_note, 
+          class: "flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 transition-colors font-medium text-center" %>
+    </div>
+  <% end %>
+
+  <!-- Save Draft Button -->
+  <div class="mt-4 text-center">
+    <button id="save-draft-btn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+      💾 초안으로 저장 (영상 생성 안함)
+    </button>
+  </div>
+</div>
+
+<!-- JavaScript for Enhanced Editing Experience -->
+<script>
+// Character counting and estimation
+function updateCharCount() {
+  const textarea = document.getElementById('content-textarea');
+  const charCount = document.getElementById('char-count');
+  const estimatedDuration = document.getElementById('estimated-duration');
+  
+  const length = textarea.value.length;
+  const koreanChars = (textarea.value.match(/[\u3131-\u3163\uac00-\ud7a3]/g) || []).length;
+  
+  charCount.textContent = `${length}자 / 800자`;
+  
+  // Estimate duration (Korean TTS ~3.5 chars per second)
+  const duration = Math.max(Math.min(koreanChars / 3.5, 60), 10);
+  estimatedDuration.textContent = `예상 길이: ${duration.toFixed(1)}초`;
+  
+  // Update color based on length
+  if (length > 800) {
+    charCount.classList.add('text-red-500');
+  } else if (length > 600) {
+    charCount.classList.add('text-yellow-500');
+  } else {
+    charCount.classList.remove('text-red-500', 'text-yellow-500');
+  }
+}
+
+// AI Content Analysis
+function analyzeContent() {
+  const content = document.getElementById('content-textarea').value;
+  if (content.length < 10) {
+    document.getElementById('ai-preview').classList.add('hidden');
+    return;
+  }
+  
+  // Simple client-side theme detection
+  const themeKeywords = {
+    'golden_light': ['찬양', '경배', '할렐루야', '영광', '찬송'],
+    'peaceful_blue': ['기도', '묵상', '평안', '고요', '조용'],
+    'sunset_worship': ['저녁', '감사', '하루', '마감', '소망'],
+    'cross_pattern': ['십자가', '믿음', '구원', '성경', '말씀'],
+    'mountain_majesty': ['힘', '인내', '산', '견디', '강함'],
+    'flowing_river': ['새로운', '생명', '세례', '거듭', '새롭']
+  };
+  
+  let detectedTheme = 'golden_light';
+  let maxMatches = 0;
+  
+  Object.entries(themeKeywords).forEach(([theme, keywords]) => {
+    const matches = keywords.filter(keyword => content.includes(keyword)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      detectedTheme = theme;
+    }
+  });
+  
+  // Type detection
+  let detectedType = 'personal_reflection';
+  if (content.includes('기도') || content.includes('간구')) {
+    detectedType = 'prayer_request';
+  } else if (content.includes('간증') || content.includes('은혜')) {
+    detectedType = 'testimony';
+  } else if (content.includes('오늘') || content.includes('하루')) {
+    detectedType = 'daily_devotion';
+  } else if (content.includes('성경') || content.includes('말씀')) {
+    detectedType = 'bible_study';
+  }
+  
+  // Update preview
+  const koreanChars = (content.match(/[\u3131-\u3163\uac00-\ud7a3]/g) || []).length;
+  const duration = Math.max(Math.min(koreanChars / 3.5, 60), 10);
+  
+  document.getElementById('detected-theme').textContent = getThemeDisplay(detectedTheme);
+  document.getElementById('detected-type').textContent = getTypeDisplay(detectedType);
+  document.getElementById('korean-chars').textContent = `${koreanChars}자`;
+  document.getElementById('video-duration').textContent = `${duration.toFixed(1)}초`;
+  
+  document.getElementById('ai-preview').classList.remove('hidden');
+}
+
+// Helper functions
+function getThemeDisplay(theme) {
+  const themes = {
+    'golden_light': '🌟 찬양과 경배',
+    'peaceful_blue': '🕯️ 기도와 묵상',
+    'sunset_worship': '🌅 저녁 경건',
+    'cross_pattern': '✝️ 성경과 믿음',
+    'mountain_majesty': '⛰️ 힘과 인내',
+    'flowing_river': '🌊 새로운 생명'
+  };
+  return themes[theme] || theme;
+}
+
+function getTypeDisplay(type) {
+  const types = {
+    'personal_reflection': '개인 묵상',
+    'prayer_request': '기도 제목',
+    'bible_study': '성경 공부',
+    'daily_devotion': '일일 경건',
+    'testimony': '간증',
+    'sermon_note': '설교 노트'
+  };
+  return types[type] || type;
+}
+
+// Save draft functionality
+document.getElementById('save-draft-btn').addEventListener('click', function() {
+  const form = document.querySelector('form');
+  const hiddenInput = document.createElement('input');
+  hiddenInput.type = 'hidden';
+  hiddenInput.name = 'save_as_draft';
+  hiddenInput.value = 'true';
+  form.appendChild(hiddenInput);
+  form.submit();
+});
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('content-textarea');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      updateCharCount();
+      clearTimeout(this.analyzeTimeout);
+      this.analyzeTimeout = setTimeout(analyzeContent, 500);
+    });
+    
+    // Initialize
+    updateCharCount();
+    analyzeContent();
+    startAutoSave();
+  }
+});
+
+// Auto-save draft every 30 seconds
+let autoSaveInterval;
+function startAutoSave() {
+  try {
+    autoSaveInterval = setInterval(function() {
+      const form = document.querySelector('form');
+      if (!form) return;
+      
+      const formData = new FormData(form);
+      formData.append('auto_save', 'true');
+      
+      const csrfToken = document.querySelector('meta[name="csrf-token"]');
+      if (!csrfToken) return;
+      
+      fetch(form.action, {
+        method: 'PATCH',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken.content,
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }).then(response => {
+        if (response.ok) {
+          console.log('Auto-saved successfully');
+          return response.text();
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      }).then(responseText => {
+        // Optional: handle response text if needed
+        console.debug('Auto-save response:', responseText);
+      }).catch(error => {
+        console.error('Auto-save failed:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        // Log full error object properties
+        console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      });
+    }, 30000); // Every 30 seconds
+  } catch (error) {
+    console.warn('Auto-save setup failed:', error);
+  }
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+  if (autoSaveInterval) {
+    clearInterval(autoSaveInterval);
+  }
+});
+</script>
+
+<style>
+/* Mobile-optimized responsive design */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+/* Enhanced focus states for mobile */
+textarea:focus, input:focus {
+  outline: none !important;
+}
+
+/* Loading state for save button */
+.btn-loading {
+  position: relative;
+  color: transparent;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>

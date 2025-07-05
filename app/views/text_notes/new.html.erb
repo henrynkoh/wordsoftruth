@@ -1,0 +1,377 @@
+<% content_for :title, "✍️ 새 영적 노트 작성" %>
+
+<div class="container mx-auto px-4 py-6 max-w-2xl">
+  <!-- Header -->
+  <div class="mb-6">
+    <%= link_to text_notes_path, class: "text-blue-600 hover:text-blue-800 text-sm flex items-center mb-3" do %>
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      텍스트 노트로 돌아가기
+    <% end %>
+    
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">✍️ 새 영적 노트 작성</h1>
+    <p class="text-gray-600">영감과 묵상을 적어주세요. AI가 자동으로 적절한 테마를 선택하고 YouTube Shorts로 변환합니다.</p>
+  </div>
+
+  <!-- Quick Templates (Mobile-friendly) -->
+  <div class="bg-blue-50 rounded-lg p-4 mb-6">
+    <h3 class="font-semibold text-blue-900 mb-3">📋 빠른 시작 템플릿</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <button onclick="fillTemplate('prayer')" class="text-left p-3 bg-white rounded-lg hover:bg-blue-100 transition-colors text-sm">
+        🙏 <strong>기도 제목:</strong> "하나님께 간구합니다..."
+      </button>
+      <button onclick="fillTemplate('devotion')" class="text-left p-3 bg-white rounded-lg hover:bg-blue-100 transition-colors text-sm">
+        📖 <strong>일일 경건:</strong> "오늘 하루도 주님과 함께..."
+      </button>
+      <button onclick="fillTemplate('testimony')" class="text-left p-3 bg-white rounded-lg hover:bg-blue-100 transition-colors text-sm">
+        ✨ <strong>간증:</strong> "하나님의 은혜를 간증합니다..."
+      </button>
+      <button onclick="fillTemplate('reflection')" class="text-left p-3 bg-white rounded-lg hover:bg-blue-100 transition-colors text-sm">
+        💭 <strong>개인 묵상:</strong> "주님께 감사드립니다..."
+      </button>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <%= form_with model: @text_note, local: true, class: "space-y-6", id: "text-note-form" do |form| %>
+    <% if @text_note.errors.any? %>
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <h4 class="text-red-800 font-semibold mb-2">다음 오류를 수정해주세요:</h4>
+        <ul class="text-red-700 text-sm space-y-1">
+          <% @text_note.errors.full_messages.each do |message| %>
+            <li>• <%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Title (Optional) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        제목 (선택사항)
+      </label>
+      <%= form.text_field :title, 
+          placeholder: "예: 오늘의 기도, 성경 묵상 등...", 
+          class: "w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" %>
+    </div>
+
+    <!-- Main Text Content -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        영적 노트 내용 <span class="text-red-500">*</span>
+      </label>
+      <%= form.text_area :content, 
+          rows: 8,
+          placeholder: "마음에 떠오른 영적 생각, 기도 제목, 성경 묵상, 간증 등을 자유롭게 적어주세요...\n\n예시:\n• 하나님께 감사드립니다. 오늘도 주님의 은혜로...\n• 시편 23편을 읽으며 선한 목자이신 주님을...\n• 어려운 상황에서도 주님을 신뢰합니다...", 
+          class: "w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+          id: "content-textarea" %>
+      
+      <!-- Character Counter -->
+      <div class="flex justify-between items-center mt-2 text-sm text-gray-500">
+        <span id="char-count">0자 / 800자</span>
+        <span id="estimated-duration">예상 길이: 10초</span>
+      </div>
+    </div>
+
+    <!-- Note Type Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-3">
+        노트 유형 (AI가 자동 감지하지만 직접 선택도 가능)
+      </label>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <% TextNote.note_types.each do |key, value| %>
+          <label class="relative">
+            <%= form.radio_button :note_type, key, 
+                class: "sr-only peer",
+                checked: (@text_note.note_type == key) %>
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
+              <div class="text-lg mb-1"><%= get_note_type_emoji(key) %></div>
+              <div class="text-sm font-medium"><%= get_note_type_display(key) %></div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Theme Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-3">
+        영상 테마 <span class="text-gray-500">(AI 자동 선택 권장)</span>
+      </label>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <!-- Auto Detect Option -->
+        <label class="relative">
+          <%= form.radio_button :theme, 'auto_detect', 
+              class: "sr-only peer",
+              checked: (@text_note.theme == 'auto_detect' || @text_note.theme.nil?) %>
+          <div class="border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
+            <div class="text-lg mb-1">🤖</div>
+            <div class="text-sm font-medium">AI 자동 선택</div>
+            <div class="text-xs text-gray-500">추천</div>
+          </div>
+        </label>
+        
+        <!-- Manual Theme Options -->
+        <% TextNote.themes.reject { |k, v| k == 'auto_detect' }.each do |key, value| %>
+          <label class="relative">
+            <%= form.radio_button :theme, key, 
+                class: "sr-only peer" %>
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-blue-300 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-colors">
+              <div class="text-lg mb-1"><%= get_theme_emoji(key) %></div>
+              <div class="text-sm font-medium"><%= get_theme_display(key) %></div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- AI Preview (Dynamic) -->
+    <div id="ai-preview" class="bg-gray-50 rounded-lg p-4 hidden">
+      <h4 class="font-semibold text-gray-900 mb-2">🤖 AI 분석 미리보기</h4>
+      <div class="space-y-2 text-sm">
+        <div>감지된 테마: <span id="detected-theme" class="font-medium"></span></div>
+        <div>예상 노트 유형: <span id="detected-type" class="font-medium"></span></div>
+        <div>한국어 글자수: <span id="korean-chars" class="font-medium"></span></div>
+        <div>예상 영상 길이: <span id="video-duration" class="font-medium"></span></div>
+      </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="flex flex-col sm:flex-row gap-3">
+      <%= form.submit "🎬 영상 생성 시작", 
+          class: "flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors font-medium" %>
+      
+      <%= link_to "취소", text_notes_path, 
+          class: "flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 transition-colors font-medium text-center" %>
+    </div>
+  <% end %>
+</div>
+
+<!-- JavaScript for Enhanced Mobile Experience -->
+<script>
+// Template filling
+const templates = {
+  prayer: "하나님께 간구합니다. 이 일을 위해 기도하며, 주님의 뜻이 이루어지기를 바랍니다. 어려운 상황에서도 주님을 의지하며, 주님의 도움을 구합니다. 예수님의 이름으로 기도합니다. 아멘.",
+  
+  devotion: "오늘 하루도 주님과 함께합니다. 아침에 깨어 주님께 감사드리며, 새로운 하루를 시작합니다. 오늘 하루 주님의 은혜가 충만하시기를 기도하며, 모든 일에서 주님의 뜻을 구합니다. 주님께 감사드립니다.",
+  
+  testimony: "하나님의 은혜를 간증합니다. 어려운 상황에서 주님께서 함께하셨고, 놀라운 방법으로 도우셨습니다. 이 모든 경험을 통해 하나님의 사랑과 신실하심을 더욱 깊이 깨달았습니다. 모든 영광을 하나님께 돌립니다.",
+  
+  reflection: "주님께 감사드립니다. 오늘 하루를 돌아보며 하나님의 은혜를 기억합니다. 작은 일상 속에서도 주님의 사랑을 느끼며, 감사한 마음으로 하루를 마무리합니다. 내일도 주님과 함께 걸어가겠습니다."
+};
+
+function fillTemplate(type) {
+  const textarea = document.getElementById('content-textarea');
+  textarea.value = templates[type];
+  updateCharCount();
+  analyzeContent();
+  
+  // Set appropriate note type
+  const noteTypeRadios = document.querySelectorAll('input[name="text_note[note_type]"]');
+  noteTypeRadios.forEach(radio => {
+    if ((type === 'prayer' && radio.value === 'prayer_request') ||
+        (type === 'devotion' && radio.value === 'daily_devotion') ||
+        (type === 'testimony' && radio.value === 'testimony') ||
+        (type === 'reflection' && radio.value === 'personal_reflection')) {
+      radio.checked = true;
+    }
+  });
+}
+
+// Character counting and estimation
+function updateCharCount() {
+  try {
+    const textarea = document.getElementById('content-textarea');
+    const charCount = document.getElementById('char-count');
+    const estimatedDuration = document.getElementById('estimated-duration');
+    
+    if (!textarea || !charCount || !estimatedDuration) return;
+    
+    const length = textarea.value.length;
+    const koreanChars = (textarea.value.match(/[\u3131-\u3163\uac00-\ud7a3]/g) || []).length;
+    
+    charCount.textContent = `${length}자 / 800자`;
+    
+    // Estimate duration (Korean TTS ~3.5 chars per second)
+    const duration = Math.max(Math.min(koreanChars / 3.5, 60), 10);
+    estimatedDuration.textContent = `예상 길이: ${duration.toFixed(1)}초`;
+    
+    // Update color based on length
+    if (length > 800) {
+      charCount.classList.add('text-red-500');
+    } else if (length > 600) {
+      charCount.classList.add('text-yellow-500');
+    } else {
+      charCount.classList.remove('text-red-500', 'text-yellow-500');
+    }
+  } catch (error) {
+    console.warn('Error updating character count:', error);
+  }
+}
+
+// AI Content Analysis
+function analyzeContent() {
+  try {
+    const textarea = document.getElementById('content-textarea');
+    const aiPreview = document.getElementById('ai-preview');
+    
+    if (!textarea || !aiPreview) return;
+    
+    const content = textarea.value;
+    if (content.length < 10) {
+      aiPreview.classList.add('hidden');
+      return;
+    }
+  
+  // Simple client-side theme detection
+  const themeKeywords = {
+    'golden_light': ['찬양', '경배', '할렐루야', '영광', '찬송'],
+    'peaceful_blue': ['기도', '묵상', '평안', '고요', '조용'],
+    'sunset_worship': ['저녁', '감사', '하루', '마감', '소망'],
+    'cross_pattern': ['십자가', '믿음', '구원', '성경', '말씀'],
+    'mountain_majesty': ['힘', '인내', '산', '견디', '강함'],
+    'flowing_river': ['새로운', '생명', '세례', '거듭', '새롭']
+  };
+  
+  let detectedTheme = 'golden_light';
+  let maxMatches = 0;
+  
+  Object.entries(themeKeywords).forEach(([theme, keywords]) => {
+    const matches = keywords.filter(keyword => content.includes(keyword)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      detectedTheme = theme;
+    }
+  });
+  
+  // Type detection
+  let detectedType = 'personal_reflection';
+  if (content.includes('기도') || content.includes('간구')) {
+    detectedType = 'prayer_request';
+  } else if (content.includes('간증') || content.includes('은혜')) {
+    detectedType = 'testimony';
+  } else if (content.includes('오늘') || content.includes('하루')) {
+    detectedType = 'daily_devotion';
+  } else if (content.includes('성경') || content.includes('말씀')) {
+    detectedType = 'bible_study';
+  }
+  
+  // Update preview
+  const koreanChars = (content.match(/[\u3131-\u3163\uac00-\ud7a3]/g) || []).length;
+  const duration = Math.max(Math.min(koreanChars / 3.5, 60), 10);
+  
+  document.getElementById('detected-theme').textContent = getThemeDisplay(detectedTheme);
+  document.getElementById('detected-type').textContent = getTypeDisplay(detectedType);
+  document.getElementById('korean-chars').textContent = `${koreanChars}자`;
+  document.getElementById('video-duration').textContent = `${duration.toFixed(1)}초`;
+  
+  document.getElementById('ai-preview').classList.remove('hidden');
+  } catch (error) {
+    console.warn('Error analyzing content:', error);
+  }
+}
+
+// Helper functions
+function getThemeDisplay(theme) {
+  const themes = {
+    'golden_light': '🌟 찬양과 경배',
+    'peaceful_blue': '🕯️ 기도와 묵상',
+    'sunset_worship': '🌅 저녁 경건',
+    'cross_pattern': '✝️ 성경과 믿음',
+    'mountain_majesty': '⛰️ 힘과 인내',
+    'flowing_river': '🌊 새로운 생명'
+  };
+  return themes[theme] || theme;
+}
+
+function getTypeDisplay(type) {
+  const types = {
+    'personal_reflection': '개인 묵상',
+    'prayer_request': '기도 제목',
+    'bible_study': '성경 공부',
+    'daily_devotion': '일일 경건',
+    'testimony': '간증',
+    'sermon_note': '설교 노트'
+  };
+  return types[type] || type;
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const textarea = document.getElementById('content-textarea');
+    const form = document.getElementById('text-note-form');
+    
+    if (textarea) {
+      textarea.addEventListener('input', function() {
+        try {
+          updateCharCount();
+          clearTimeout(this.analyzeTimeout);
+          this.analyzeTimeout = setTimeout(analyzeContent, 500);
+        } catch (error) {
+          console.error('Error in textarea input handler:', error);
+        }
+      });
+      
+      // Initialize
+      updateCharCount();
+    }
+    
+    // Enhanced form submission handling
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        try {
+          console.log('Form submission started');
+          // Additional validation can go here
+          const content = textarea ? textarea.value.trim() : '';
+          if (content.length < 10) {
+            event.preventDefault();
+            alert('내용을 최소 10자 이상 입력해주세요.');
+            return false;
+          }
+          console.log('Form validation passed');
+        } catch (error) {
+          console.error('Error in form submission handler:', error);
+          event.preventDefault();
+          return false;
+        }
+      });
+    }
+    
+    // Prevent any unhandled promise rejections from this page
+    window.addEventListener('unhandledrejection', function(event) {
+      console.error('Page-specific Promise rejection caught:', event.reason);
+      event.preventDefault(); // Prevent the error from propagating
+    });
+    
+  } catch (error) {
+    console.error('Error setting up text entry form:', error);
+  }
+});
+</script>
+
+<style>
+/* Mobile-optimized responsive design */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+/* Enhanced focus states for mobile */
+textarea:focus, input:focus {
+  outline: none !important;
+}
+
+/* Template buttons hover effect */
+.bg-blue-50 button:active {
+  transform: scale(0.98);
+}
+</style>

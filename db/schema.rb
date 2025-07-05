@@ -65,6 +65,28 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_28_161500) do
     t.index ["title"], name: "index_sermons_on_title"
   end
 
+  create_table "text_notes", force: :cascade do |t|
+    t.string "title", limit: 100
+    t.text "content", null: false
+    t.text "enhanced_content"
+    t.integer "theme", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.integer "note_type", default: 0, null: false
+    t.string "video_file_path"
+    t.string "youtube_video_id"
+    t.string "youtube_url"
+    t.float "estimated_duration"
+    t.integer "korean_character_count", default: 0
+    t.json "processing_metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_text_notes_on_created_at"
+    t.index ["note_type"], name: "index_text_notes_on_note_type"
+    t.index ["status"], name: "index_text_notes_on_status"
+    t.index ["theme"], name: "index_text_notes_on_theme"
+    t.index ["youtube_video_id"], name: "index_text_notes_on_youtube_video_id"
+  end
+
   create_table "videos", force: :cascade do |t|
     t.integer "sermon_id", null: false
     t.text "script"

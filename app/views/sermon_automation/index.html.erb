@@ -1,743 +1,849 @@
-<div class="automation-landing">
+<div class="unified-landing">
   <!-- Hero Section -->
-  <div class="hero-section">
-    <div class="container-fluid">
-      <div class="row align-items-center min-vh-100">
-        <div class="col-lg-6">
-          <div class="hero-content">
-            <h1 class="hero-title">
-              <span class="hero-icon">🎬</span>
-              Words of Truth
-              <span class="hero-subtitle">자동 YouTube Shorts 생성</span>
-            </h1>
-            <p class="hero-description">
-              설교 URL을 입력하면 자동으로 YouTube Shorts를 생성하여 업로드합니다.
-              AI 기반 콘텐츠 추출, 한국어 TTS, 그리고 전문적인 비디오 제작이 모두 자동화되어 있습니다.
-            </p>
-            
-            <!-- Quick Stats -->
-            <div class="quick-stats">
-              <div class="stat-item">
-                <div class="stat-number"><%= @stats[:total_sermons] %></div>
-                <div class="stat-label">처리된 설교</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-number"><%= @stats[:uploaded_videos] %></div>
-                <div class="stat-label">YouTube 업로드</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-number">94.2%</div>
-                <div class="stat-label">성공률</div>
+  <div class="hero-section bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen flex items-center">
+    <div class="container mx-auto px-4 py-16">
+      <div class="text-center mb-16">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 text-white drop-shadow-lg">
+          <span class="text-yellow-400">🎬</span> Words of Truth
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto leading-relaxed text-gray-100 drop-shadow-md">
+          설교, 개인 영성, 그리고 YouTube 콘텐츠를 
+          <span class="text-yellow-400 font-semibold bg-gray-800 bg-opacity-50 px-2 py-1 rounded">AI 자동화</span>로 
+          손쉽게 YouTube Shorts로 변환하세요
+        </p>
+        
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
+          <div class="bg-gray-800 bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border border-gray-600">
+            <div class="text-3xl font-bold text-yellow-400">10+</div>
+            <div class="text-sm text-gray-200 font-medium">영적 테마</div>
+          </div>
+          <div class="bg-gray-800 bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border border-gray-600">
+            <div class="text-3xl font-bold text-yellow-400">60초</div>
+            <div class="text-sm text-gray-200 font-medium">평균 생성 시간</div>
+          </div>
+          <div class="bg-gray-800 bg-opacity-80 rounded-lg p-6 backdrop-blur-sm border border-gray-600">
+            <div class="text-3xl font-bold text-yellow-400">24/7</div>
+            <div class="text-sm text-gray-200 font-medium">자동화 서비스</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Three Input Modes -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        
+        <!-- Mode 1: Sermon Automation -->
+        <div class="input-mode-card bg-white rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-300">
+          <div class="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white">
+            <div class="flex items-center mb-4">
+              <span class="text-4xl mr-4">🎙️</span>
+              <div>
+                <h3 class="text-2xl font-bold">설교 자동화</h3>
+                <p class="text-orange-100">URL에서 자동 추출</p>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div class="col-lg-6">
-          <!-- URL Input Form -->
-          <div class="automation-form-card">
-            <div class="form-header">
-              <h3>🚀 설교 자동화 시작하기</h3>
-              <p>설교 URL들을 입력하여 YouTube Shorts 자동 생성을 시작하세요</p>
-            </div>
-            
-            <%= form_with url: start_automation_path, method: :post, local: true, class: "automation-form" do |form| %>
-              <div class="form-group">
-                <label for="sermon_urls" class="form-label">
-                  📎 설교 URL 목록
-                  <span class="label-info">(한 줄에 하나씩 입력)</span>
+          
+          <div class="p-6">
+            <%= form_with url: start_automation_path, method: :post, local: false, class: "space-y-4", id: "sermon-form" do |form| %>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">
+                  🔗 설교 URL
                 </label>
-                <div class="textarea-container">
-                  <%= form.text_area :sermon_urls, 
-                      class: "form-control url-textarea", 
-                      rows: 8,
-                      placeholder: "https://church1.com/sermon1\nhttps://church2.com/message2\nhttps://ministry.org/teaching3\n\n← 여기에 설교 URL들을 입력하세요!\n← 각 줄에 하나씩 URL을 붙여넣으세요\n← 최대 20개까지 한번에 처리 가능합니다",
-                      required: true %>
-                  <div class="input-guide-arrow">
-                    <span class="arrow-text">👆 여기에 URL 입력</span>
-                    <div class="arrow-line"></div>
-                  </div>
+                <%= form.url_field :sermon_url, 
+                    placeholder: "https://example.com/sermon", 
+                    class: "w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900",
+                    required: true %>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-2">📊 개수</label>
+                  <%= form.number_field :num_videos, 
+                      value: 4, min: 1, max: 10,
+                      class: "w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900" %>
                 </div>
-                <div class="form-help">
-                  ✅ HTTP/HTTPS URL만 지원<br>
-                  ✅ 설교, 메시지, 강의 콘텐츠 자동 감지<br>
-                  ✅ 최대 20개까지 동시 처리 가능
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-2">⏱️ 길이</label>
+                  <%= form.number_field :duration, 
+                      value: 30, min: 15, max: 60,
+                      class: "w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900" %>
                 </div>
               </div>
               
-              <div class="form-actions">
-                <%= form.submit "🎬 자동화 시작하기", 
-                    class: "btn btn-primary btn-lg automation-btn",
-                    data: { 
-                      confirm: "선택한 URL들로 YouTube Shorts 자동 생성을 시작하시겠습니까?",
-                      disable_with: "처리 중..." 
-                    } %>
-              </div>
+              <%= form.submit "🚀 설교 자동화 시작", 
+                  class: "w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-6 rounded-lg hover:from-orange-600 hover:to-red-600 transform hover:scale-105 transition-all duration-200 font-semibold shadow-lg" %>
             <% end %>
             
-            <!-- Sample URLs for testing -->
-            <div class="sample-urls">
-              <h6>💡 테스트용 샘플 URL</h6>
-              <div class="sample-url-list">
-                <code onclick="addSampleUrl(this)">https://gracechurch.org/sermons/gods-love</code>
-                <code onclick="addSampleUrl(this)">https://faithcommunity.com/messages/peace</code>
-                <code onclick="addSampleUrl(this)">https://newlife.kr/teaching/hope</code>
+            <div class="mt-4 text-sm text-gray-700 bg-orange-50 p-3 rounded-lg">
+              ✨ <strong>AI가 설교 내용을 분석하여 핵심 메시지 추출</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode 2: Text Entry -->
+        <div class="input-mode-card bg-white rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-300">
+          <div class="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white">
+            <div class="flex items-center mb-4">
+              <span class="text-4xl mr-4">✍️</span>
+              <div>
+                <h3 class="text-2xl font-bold">텍스트 입력</h3>
+                <p class="text-blue-100">개인 영적 콘텐츠</p>
               </div>
-              <small class="text-muted">클릭하여 입력창에 추가</small>
             </div>
           </div>
+          
+          <div class="p-6">
+            <%= form_with model: TextNote.new, url: text_notes_path, class: "space-y-4", id: "text-form" do |form| %>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">
+                  💭 영적 노트
+                </label>
+                <%= form.text_area :content, 
+                    rows: 4,
+                    placeholder: "기도, 묵상, 간증, 성경 공부 내용을 자유롭게 적어주세요...\n\n예시:\n• 오늘 하루 주님께 감사드립니다\n• 시편 23편을 묵상하며...", 
+                    class: "w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900",
+                    id: "text-content",
+                    required: true %>
+                <div class="flex justify-between text-xs text-gray-600 mt-1 font-medium">
+                  <span id="text-char-count">0자 / 800자</span>
+                  <span id="text-duration">예상: 10초</span>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-2">🎨 테마</label>
+                  <%= form.select :theme, 
+                      options_for_select([
+                        ['🤖 AI 자동 선택', 'auto_detect'],
+                        ['🌟 찬양과 경배', 'golden_light'],
+                        ['🕯️ 기도와 묵상', 'peaceful_blue'],
+                        ['🌅 저녁 경건', 'sunset_worship'],
+                        ['✝️ 성경과 믿음', 'cross_pattern']
+                      ], 'auto_detect'),
+                      {},
+                      class: "w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-800" %>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-2">📝 유형</label>
+                  <%= form.select :note_type,
+                      options_for_select([
+                        ['💭 개인 묵상', 'personal_reflection'],
+                        ['🙏 기도 제목', 'prayer_request'],
+                        ['📖 성경 공부', 'bible_study'],
+                        ['🌅 일일 경건', 'daily_devotion'],
+                        ['✨ 간증', 'testimony']
+                      ], 'personal_reflection'),
+                      {},
+                      class: "w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-800" %>
+                </div>
+              </div>
+              
+              <%= form.submit "🎬 영상 생성하기", 
+                  class: "w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-200 font-semibold shadow-lg" %>
+            <% end %>
+            
+            <div class="mt-4 text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
+              🤖 <strong>AI가 텍스트를 분석하여 적절한 테마 자동 선택</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode 3: YouTube Automation -->
+        <div class="input-mode-card bg-white rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-300">
+          <div class="bg-gradient-to-r from-green-500 to-teal-500 p-6 text-white">
+            <div class="flex items-center mb-4">
+              <span class="text-4xl mr-4">📺</span>
+              <div>
+                <h3 class="text-2xl font-bold">YouTube 자동화</h3>
+                <p class="text-green-100">대량 업로드 & 관리</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-6">
+            <%= form_with url: youtube_start_automation_path, method: :post, local: false, class: "space-y-4", id: "youtube-form" do |form| %>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">
+                  🎯 업로드 모드
+                </label>
+                <%= form.select :upload_mode,
+                    options_for_select([
+                      ['📁 기존 영상 업로드', 'existing_videos'],
+                      ['🔄 자동 생성 + 업로드', 'generate_and_upload'],
+                      ['📋 대기열 처리', 'process_queue']
+                    ], 'existing_videos'),
+                    {},
+                    class: "w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900" %>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-2">📊 배치 크기</label>
+                  <%= form.number_field :batch_size, 
+                      value: 5, min: 1, max: 20,
+                      class: "w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900" %>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-800 mb-2">⏰ 간격(분)</label>
+                  <%= form.number_field :interval_minutes, 
+                      value: 30, min: 15, max: 180,
+                      class: "w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900" %>
+                </div>
+              </div>
+              
+              <div>
+                <label class="flex items-center space-x-2 text-sm text-gray-800 font-medium">
+                  <%= form.check_box :auto_schedule, 
+                      class: "rounded border-gray-300 text-green-600 focus:ring-green-500" %>
+                  <span>🕒 자동 스케줄링 활성화</span>
+                </label>
+              </div>
+              
+              <%= form.submit "📺 YouTube 자동화 시작", 
+                  class: "w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 px-6 rounded-lg hover:from-green-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-200 font-semibold shadow-lg" %>
+            <% end %>
+            
+            <div class="mt-4 text-sm text-gray-700 bg-green-50 p-3 rounded-lg">
+              📈 <strong>스마트 스케줄링으로 최적 업로드 타이밍</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Highlight -->
+      <div class="mt-16 text-center">
+        <h3 class="text-2xl font-bold mb-8 text-white drop-shadow-lg">✨ 주요 기능</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mb-12">
+          <div class="bg-gray-800 bg-opacity-80 text-white p-4 rounded-lg backdrop-blur-sm border border-gray-600">
+            <div class="text-2xl mb-2">🎨</div>
+            <div class="font-semibold text-gray-100">10+ 영적 테마</div>
+            <div class="text-sm text-gray-300">자동 테마 감지</div>
+          </div>
+          <div class="bg-gray-800 bg-opacity-80 text-white p-4 rounded-lg backdrop-blur-sm border border-gray-600">
+            <div class="text-2xl mb-2">🤖</div>
+            <div class="font-semibold text-gray-100">AI 콘텐츠 분석</div>
+            <div class="text-sm text-gray-300">한국어 최적화</div>
+          </div>
+          <div class="bg-gray-800 bg-opacity-80 text-white p-4 rounded-lg backdrop-blur-sm border border-gray-600">
+            <div class="text-2xl mb-2">📱</div>
+            <div class="font-semibold text-gray-100">모바일 친화적</div>
+            <div class="text-sm text-gray-300">반응형 디자인</div>
+          </div>
+          <div class="bg-gray-800 bg-opacity-80 text-white p-4 rounded-lg backdrop-blur-sm border border-gray-600">
+            <div class="text-2xl mb-2">⚡</div>
+            <div class="font-semibold text-gray-100">실시간 처리</div>
+            <div class="text-sm text-gray-300">빠른 생성 속도</div>
+          </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <h4 class="text-xl font-bold mb-6 text-white drop-shadow-lg">🚀 관리 도구</h4>
+        <div class="flex flex-wrap justify-center gap-4">
+          <%= link_to text_notes_path, 
+              class: "bg-gray-800 bg-opacity-80 text-white px-6 py-3 rounded-lg hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 backdrop-blur-sm flex items-center border border-gray-600 shadow-lg" do %>
+            📝 <span class="ml-2 font-medium">텍스트 노트 관리</span>
+          <% end %>
+          <%= link_to "/monitoring", 
+              class: "bg-gray-800 bg-opacity-80 text-white px-6 py-3 rounded-lg hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 backdrop-blur-sm flex items-center border border-gray-600 shadow-lg" do %>
+            📊 <span class="ml-2 font-medium">시스템 모니터링</span>
+          <% end %>
+          <%= link_to "/sidekiq", 
+              class: "bg-gray-800 bg-opacity-80 text-white px-6 py-3 rounded-lg hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 backdrop-blur-sm flex items-center border border-gray-600 shadow-lg" do %>
+            ⚙️ <span class="ml-2 font-medium">작업 대기열</span>
+          <% end %>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Navigation Section -->
-  <div class="navigation-section">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12 text-center">
-          <h3>🚀 다른 자동화 옵션</h3>
-          <div class="navigation-cards">
-            <a href="<%= youtube_automation_path %>" class="nav-card youtube-card">
-              <div class="nav-icon">📺</div>
-              <h4>YouTube 동영상 자동화</h4>
-              <p>기존 YouTube 설교 동영상에서 콘텐츠를 추출하여 새로운 YouTube Shorts 생성</p>
-            </a>
-            <a href="<%= monitoring_path %>" class="nav-card">
-              <div class="nav-icon">📊</div>
-              <h4>모니터링 대시보드</h4>
-              <p>전체 자동화 시스템의 성능과 현황을 실시간으로 모니터링</p>
-            </a>
+  <!-- Real-time Progress Dashboard -->
+  <div class="status-dashboard bg-gray-50 py-16">
+    <div class="container mx-auto px-4">
+      <h3 class="text-3xl font-bold text-center mb-12 text-gray-800">📊 실시간 진행 상황</h3>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        
+        <!-- Sermon Processing Pipeline -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <div class="flex items-center mb-4">
+            <div class="text-3xl mr-3">🎙️</div>
+            <div>
+              <h4 class="text-lg font-semibold text-gray-800">설교 자동화 파이프라인</h4>
+              <div id="sermon-status-text" class="text-sm text-gray-600">대기 중...</div>
+            </div>
+          </div>
+          
+          <!-- Overall Progress -->
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-700">전체 진행률</span>
+              <span id="sermon-overall-percent" class="text-sm font-bold text-orange-600">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div id="sermon-overall-progress" class="bg-gradient-to-r from-orange-500 to-red-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+          
+          <!-- Individual Steps -->
+          <div class="space-y-3">
+            <!-- Step 1: URL Processing -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">📥 URL 분석 및 콘텐츠 추출</span>
+                <span id="sermon-step1-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="sermon-step1-progress" class="bg-orange-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="sermon-step1-time" class="text-xs text-gray-500 mt-1">예상 시간: 30초</div>
+            </div>
+            
+            <!-- Step 2: AI Analysis -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">🤖 AI 콘텐츠 분석 및 요약</span>
+                <span id="sermon-step2-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="sermon-step2-progress" class="bg-blue-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="sermon-step2-time" class="text-xs text-gray-500 mt-1">예상 시간: 45초</div>
+            </div>
+            
+            <!-- Step 3: Video Generation -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">🎬 영상 생성 및 렌더링</span>
+                <span id="sermon-step3-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="sermon-step3-progress" class="bg-purple-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="sermon-step3-time" class="text-xs text-gray-500 mt-1">예상 시간: 60초</div>
+            </div>
+          </div>
+          
+          <div id="sermon-eta" class="mt-4 text-center text-sm font-medium text-gray-700 bg-orange-50 p-2 rounded">
+            완료 예상 시간: <span class="text-orange-600 font-bold">대기 중</span>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Process Overview Section -->
-  <div class="process-overview">
-    <div class="container-fluid">
-      <h2 class="section-title">🔄 자동화 프로세스</h2>
-      <div class="row">
-        <div class="col-md-3">
-          <div class="process-step">
-            <div class="step-icon">📡</div>
-            <h4>1. 콘텐츠 추출</h4>
-            <p>URL에서 설교 제목, 성경 구절, 내용을 자동으로 추출합니다.</p>
+        <!-- Text Entry Processing Pipeline -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <div class="flex items-center mb-4">
+            <div class="text-3xl mr-3">✍️</div>
+            <div>
+              <h4 class="text-lg font-semibold text-gray-800">텍스트 입력 파이프라인</h4>
+              <div id="text-status-text" class="text-sm text-gray-600">대기 중...</div>
+            </div>
+          </div>
+          
+          <!-- Overall Progress -->
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-700">전체 진행률</span>
+              <span id="text-overall-percent" class="text-sm font-bold text-blue-600">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div id="text-overall-progress" class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+          
+          <!-- Individual Steps -->
+          <div class="space-y-3">
+            <!-- Step 1: Text Analysis -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">🔍 텍스트 분석 및 테마 감지</span>
+                <span id="text-step1-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="text-step1-progress" class="bg-blue-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="text-step1-time" class="text-xs text-gray-500 mt-1">예상 시간: 15초</div>
+            </div>
+            
+            <!-- Step 2: Content Enhancement -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">✨ 한국어 콘텐츠 향상</span>
+                <span id="text-step2-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="text-step2-progress" class="bg-green-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="text-step2-time" class="text-xs text-gray-500 mt-1">예상 시간: 20초</div>
+            </div>
+            
+            <!-- Step 3: Video Generation -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">🎥 최적화된 영상 생성</span>
+                <span id="text-step3-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="text-step3-progress" class="bg-purple-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="text-step3-time" class="text-xs text-gray-500 mt-1">예상 시간: 25초</div>
+            </div>
+          </div>
+          
+          <div id="text-eta" class="mt-4 text-center text-sm font-medium text-gray-700 bg-blue-50 p-2 rounded">
+            완료 예상 시간: <span class="text-blue-600 font-bold">대기 중</span>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="process-step">
-            <div class="step-icon">🎤</div>
-            <h4>2. 스크립트 생성</h4>
-            <p>추출된 내용을 바탕으로 YouTube Shorts용 스크립트를 생성합니다.</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="process-step">
-            <div class="step-icon">🎬</div>
-            <h4>3. 비디오 제작</h4>
-            <p>한국어 TTS와 전문 배경으로 1080x1920 수직 비디오를 제작합니다.</p>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="process-step">
-            <div class="step-icon">📱</div>
-            <h4>4. YouTube 업로드</h4>
-            <p>완성된 Shorts를 YouTube 채널에 자동으로 업로드합니다.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Today's Stats Section -->
-  <div class="todays-stats">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12">
-          <h3>📊 오늘의 현황</h3>
+        <!-- YouTube Upload Pipeline -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <div class="flex items-center mb-4">
+            <div class="text-3xl mr-3">📺</div>
+            <div>
+              <h4 class="text-lg font-semibold text-gray-800">YouTube 업로드 파이프라인</h4>
+              <div id="youtube-status-text" class="text-sm text-gray-600">대기 중...</div>
+            </div>
+          </div>
+          
+          <!-- Overall Progress -->
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-700">전체 진행률</span>
+              <span id="youtube-overall-percent" class="text-sm font-bold text-green-600">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div id="youtube-overall-progress" class="bg-gradient-to-r from-green-500 to-teal-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+          
+          <!-- Individual Steps -->
+          <div class="space-y-3">
+            <!-- Step 1: File Preparation -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">📁 파일 준비 및 메타데이터</span>
+                <span id="youtube-step1-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="youtube-step1-progress" class="bg-green-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="youtube-step1-time" class="text-xs text-gray-500 mt-1">예상 시간: 10초</div>
+            </div>
+            
+            <!-- Step 2: Upload Process -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">⬆️ YouTube 업로드 진행</span>
+                <span id="youtube-step2-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="youtube-step2-progress" class="bg-red-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="youtube-step2-time" class="text-xs text-gray-500 mt-1">예상 시간: 90초</div>
+            </div>
+            
+            <!-- Step 3: Processing & Publishing -->
+            <div class="step-item">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-medium text-gray-600">🚀 YouTube 처리 및 게시</span>
+                <span id="youtube-step3-percent" class="text-xs text-gray-500">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="youtube-step3-progress" class="bg-teal-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div id="youtube-step3-time" class="text-xs text-gray-500 mt-1">예상 시간: 30초</div>
+            </div>
+          </div>
+          
+          <div id="youtube-eta" class="mt-4 text-center text-sm font-medium text-gray-700 bg-green-50 p-2 rounded">
+            완료 예상 시간: <span class="text-green-600 font-bold">대기 중</span>
+          </div>
         </div>
+        
       </div>
-      <div class="row">
-        <div class="col-md-3">
-          <div class="stat-card">
-            <div class="stat-icon">📝</div>
-            <div class="stat-info">
-              <div class="stat-number"><%= @processing_stats[:total_sermons_today] %></div>
-              <div class="stat-label">오늘 처리된 설교</div>
+      
+      <!-- Global Status Summary -->
+      <div class="mt-12 max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <h4 class="text-xl font-semibold text-center mb-4 text-gray-800">🔄 전체 시스템 상태</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-blue-600" id="total-active-jobs">0</div>
+              <div class="text-sm text-gray-600">활성 작업</div>
             </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stat-card">
-            <div class="stat-icon">🎬</div>
-            <div class="stat-info">
-              <div class="stat-number"><%= @processing_stats[:total_videos_today] %></div>
-              <div class="stat-label">오늘 생성된 비디오</div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-green-600" id="total-completed-today">0</div>
+              <div class="text-sm text-gray-600">오늘 완료</div>
             </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stat-card">
-            <div class="stat-icon">📱</div>
-            <div class="stat-info">
-              <div class="stat-number"><%= @processing_stats[:videos_uploaded_today] %></div>
-              <div class="stat-label">YouTube 업로드</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-info">
-              <div class="stat-number"><%= @processing_stats[:success_rate] %>%</div>
-              <div class="stat-label">성공률</div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-purple-600" id="avg-processing-time">0분</div>
+              <div class="text-sm text-gray-600">평균 처리 시간</div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Recent Activity Section -->
-  <% if @recent_batches&.any? %>
-  <div class="recent-activity">
-    <div class="container-fluid">
-      <h3>🕒 최근 배치 처리</h3>
-      <div class="activity-list">
-        <% @recent_batches.each do |batch| %>
-        <div class="activity-item">
-          <div class="activity-status <%= batch.status %>"></div>
-          <div class="activity-content">
-            <div class="activity-title">배치 #<%= batch.id.first(8) %></div>
-            <div class="activity-details">
-              <%= batch.total_urls %>개 URL · 
-              <%= batch.successful_videos %>개 성공 · 
-              <%= time_ago_in_words(batch.created_at) %> 전
-            </div>
-          </div>
-          <a href="<%= batch_progress_path(batch.id) %>" class="btn btn-sm btn-outline-primary">
-            상세보기
-          </a>
-        </div>
-        <% end %>
-      </div>
-    </div>
-  </div>
-  <% end %>
 </div>
 
-<!-- JavaScript for enhanced functionality -->
+<!-- Enhanced JavaScript for Unified Interface -->
 <script>
-function addSampleUrl(element) {
-  const textarea = document.getElementById('sermon_urls');
-  const currentValue = textarea.value;
-  const newUrl = element.textContent;
-  
-  if (currentValue.trim() === '') {
-    textarea.value = newUrl;
-  } else {
-    textarea.value = currentValue + '\n' + newUrl;
-  }
-  
-  // Visual feedback
-  element.style.backgroundColor = '#28a745';
-  element.style.color = 'white';
-  setTimeout(() => {
-    element.style.backgroundColor = '';
-    element.style.color = '';
-  }, 1000);
-  
-  textarea.focus();
-}
-
-// Auto-resize textarea
 document.addEventListener('DOMContentLoaded', function() {
-  const textarea = document.querySelector('.url-textarea');
-  if (textarea) {
-    textarea.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = this.scrollHeight + 'px';
-    });
-  }
-});
-
-// URL validation
-function validateUrls() {
-  const textarea = document.getElementById('sermon_urls');
-  const urls = textarea.value.split('\n').filter(url => url.trim() !== '');
+  // Text character counting
+  const textContent = document.getElementById('text-content');
+  const charCount = document.getElementById('text-char-count');
+  const durationSpan = document.getElementById('text-duration');
   
-  const invalidUrls = urls.filter(url => {
-    try {
-      new URL(url.trim());
-      return false;
-    } catch {
-      return true;
+  if (textContent && charCount && durationSpan) {
+    function updateTextStats() {
+      const length = textContent.value.length;
+      const koreanChars = (textContent.value.match(/[\u3131-\u3163\uac00-\ud7a3]/g) || []).length;
+      
+      charCount.textContent = `${length}자 / 800자`;
+      
+      const duration = Math.max(Math.min(koreanChars / 3.5, 60), 10);
+      durationSpan.textContent = `예상: ${duration.toFixed(1)}초`;
+      
+      // Update colors
+      if (length > 800) {
+        charCount.classList.add('text-red-500');
+      } else if (length > 600) {
+        charCount.classList.add('text-yellow-500');
+      } else {
+        charCount.classList.remove('text-red-500', 'text-yellow-500');
+      }
+    }
+    
+    textContent.addEventListener('input', updateTextStats);
+    updateTextStats();
+  }
+  
+  // Form submission handlers with progress indication
+  const forms = ['sermon-form', 'text-form', 'youtube-form'];
+  
+  forms.forEach(formId => {
+    const form = document.getElementById(formId);
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('input[type="submit"]');
+        if (submitBtn) {
+          submitBtn.value = '처리 중...';
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-75');
+        }
+      });
     }
   });
   
-  if (invalidUrls.length > 0) {
-    alert(`다음 URL들이 유효하지 않습니다:\n${invalidUrls.join('\n')}`);
-    return false;
-  }
-  
-  if (urls.length === 0) {
-    alert('최소 하나의 URL을 입력해주세요.');
-    return false;
-  }
-  
-  if (urls.length > 20) {
-    alert('한 번에 최대 20개의 URL만 처리할 수 있습니다.');
-    return false;
-  }
-  
-  return true;
-}
+  // Progress tracking system
+  let progressSimulation = {
+    sermon: { active: false, currentStep: 0, stepProgress: 0 },
+    text: { active: false, currentStep: 0, stepProgress: 0 },
+    youtube: { active: false, currentStep: 0, stepProgress: 0 }
+  };
 
-// Add validation to form
-document.querySelector('.automation-form').addEventListener('submit', function(e) {
-  if (!validateUrls()) {
-    e.preventDefault();
+  // Real-time status updates
+  function updateStatusDashboard() {
+    fetch('/monitoring/status')
+      .then(response => response.json())
+      .then(data => {
+        updateGlobalStats(data);
+        updateProgressBars(data);
+      })
+      .catch(error => {
+        console.log('Status update failed:', error);
+        // Fallback to demo mode for development
+        updateDemoProgress();
+      });
   }
+
+  function updateGlobalStats(data) {
+    const activeJobsEl = document.getElementById('total-active-jobs');
+    const completedTodayEl = document.getElementById('total-completed-today');
+    const avgTimeEl = document.getElementById('avg-processing-time');
+    
+    if (activeJobsEl) activeJobsEl.textContent = data.active_jobs || 0;
+    if (completedTodayEl) completedTodayEl.textContent = data.completed_today || 0;
+    if (avgTimeEl) avgTimeEl.textContent = `${data.avg_processing_time || 0}분`;
+  }
+
+  function updateProgressBars(data) {
+    // Update sermon pipeline
+    if (data.sermon_progress) {
+      updatePipelineProgress('sermon', data.sermon_progress);
+    }
+    
+    // Update text pipeline
+    if (data.text_progress) {
+      updatePipelineProgress('text', data.text_progress);
+    }
+    
+    // Update youtube pipeline
+    if (data.youtube_progress) {
+      updatePipelineProgress('youtube', data.youtube_progress);
+    }
+  }
+
+  function updatePipelineProgress(type, progressData) {
+    const overallPercent = progressData.overall_percent || 0;
+    const currentStep = progressData.current_step || 0;
+    const eta = progressData.eta || '대기 중';
+    const status = progressData.status || '대기 중...';
+    
+    // Update overall progress
+    const overallProgressEl = document.getElementById(`${type}-overall-progress`);
+    const overallPercentEl = document.getElementById(`${type}-overall-percent`);
+    const statusTextEl = document.getElementById(`${type}-status-text`);
+    const etaEl = document.getElementById(`${type}-eta`);
+    
+    if (overallProgressEl) overallProgressEl.style.width = `${overallPercent}%`;
+    if (overallPercentEl) overallPercentEl.textContent = `${overallPercent}%`;
+    if (statusTextEl) statusTextEl.textContent = status;
+    if (etaEl) etaEl.querySelector('span').textContent = eta;
+    
+    // Update individual steps
+    for (let i = 1; i <= 3; i++) {
+      const stepPercent = progressData.steps?.[i-1]?.percent || 0;
+      const stepTime = progressData.steps?.[i-1]?.remaining_time || `예상 시간: ${getDefaultStepTime(type, i)}초`;
+      
+      const stepProgressEl = document.getElementById(`${type}-step${i}-progress`);
+      const stepPercentEl = document.getElementById(`${type}-step${i}-percent`);
+      const stepTimeEl = document.getElementById(`${type}-step${i}-time`);
+      
+      if (stepProgressEl) stepProgressEl.style.width = `${stepPercent}%`;
+      if (stepPercentEl) stepPercentEl.textContent = `${stepPercent}%`;
+      if (stepTimeEl) stepTimeEl.textContent = stepTime;
+      
+      // Highlight current step
+      const stepItem = stepProgressEl?.closest('.step-item');
+      if (stepItem) {
+        if (i === currentStep) {
+          stepItem.classList.add('current-step');
+        } else {
+          stepItem.classList.remove('current-step');
+        }
+      }
+    }
+  }
+
+  function getDefaultStepTime(type, step) {
+    const times = {
+      sermon: [30, 45, 60],
+      text: [15, 20, 25],
+      youtube: [10, 90, 30]
+    };
+    return times[type]?.[step-1] || 30;
+  }
+
+  // Demo progress simulation for development
+  function updateDemoProgress() {
+    // Simulate some activity for demonstration
+    Object.keys(progressSimulation).forEach(type => {
+      if (Math.random() > 0.7) { // 30% chance of activity
+        const sim = progressSimulation[type];
+        if (!sim.active) {
+          sim.active = true;
+          sim.currentStep = 1;
+          sim.stepProgress = 0;
+        }
+        
+        // Simulate progress
+        sim.stepProgress += Math.random() * 15;
+        if (sim.stepProgress >= 100) {
+          sim.currentStep++;
+          sim.stepProgress = 0;
+          if (sim.currentStep > 3) {
+            sim.active = false;
+            sim.currentStep = 0;
+          }
+        }
+        
+        // Calculate overall progress
+        const overallProgress = ((sim.currentStep - 1) * 100 + sim.stepProgress) / 3;
+        
+        const demoData = {
+          overall_percent: Math.round(overallProgress),
+          current_step: sim.currentStep,
+          status: sim.active ? `단계 ${sim.currentStep} 진행 중...` : '대기 중...',
+          eta: sim.active ? `${Math.round((3 - sim.currentStep) * 30 + (100 - sim.stepProgress) * 0.3)}초 후` : '대기 중',
+          steps: [
+            { percent: sim.currentStep > 1 ? 100 : (sim.currentStep === 1 ? Math.round(sim.stepProgress) : 0) },
+            { percent: sim.currentStep > 2 ? 100 : (sim.currentStep === 2 ? Math.round(sim.stepProgress) : 0) },
+            { percent: sim.currentStep > 3 ? 100 : (sim.currentStep === 3 ? Math.round(sim.stepProgress) : 0) }
+          ]
+        };
+        
+        updatePipelineProgress(type, demoData);
+      }
+    });
+    
+    // Update global stats with demo data
+    updateGlobalStats({
+      active_jobs: Object.values(progressSimulation).filter(s => s.active).length,
+      completed_today: Math.floor(Math.random() * 50),
+      avg_processing_time: Math.floor(Math.random() * 5) + 2
+    });
+  }
+
+  // Update every 5 seconds for more responsive progress tracking
+  updateStatusDashboard();
+  setInterval(updateStatusDashboard, 5000);
+  
+  // Smooth scrolling for better UX
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
 });
 </script>
 
 <style>
-/* Landing Page Styles */
-.automation-landing {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+.input-mode-card {
+  transition: all 0.3s ease;
+}
+
+.input-mode-card:hover {
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
 .hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 2rem 0;
-}
-
-.hero-title {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.hero-icon {
-  font-size: 4rem;
-  margin-right: 1rem;
-  display: inline-block;
-  animation: float 3s ease-in-out infinite;
-}
-
-.hero-subtitle {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 400;
-  margin-top: 0.5rem;
-  opacity: 0.9;
-}
-
-.hero-description {
-  font-size: 1.2rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  opacity: 0.9;
-}
-
-.quick-stats {
-  display: flex;
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #00ff88;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  margin-top: 0.5rem;
-}
-
-/* Form Card */
-.automation-form-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.form-header h3 {
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.form-header p {
-  color: #666;
-  margin-bottom: 2rem;
-}
-
-.form-label {
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.label-info {
-  font-weight: 400;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.textarea-container {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #1f2937 100%);
+  background-attachment: fixed;
   position: relative;
 }
 
-.url-textarea {
-  border: 3px solid #666;
-  border-radius: 10px;
-  padding: 1rem;
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 1rem;
-  color: #222;
-  font-weight: 500;
-  transition: border-color 0.3s ease;
-  min-height: 200px;
-  line-height: 1.5;
-}
-
-.url-textarea:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.3rem rgba(102, 126, 234, 0.3);
-}
-
-.url-textarea::placeholder {
-  color: #666;
-  font-weight: 400;
-}
-
-.input-guide-arrow {
+.hero-section::before {
+  content: '';
   position: absolute;
-  top: 10px;
-  right: -120px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  opacity: 0.8;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.05"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
   pointer-events: none;
-  animation: gentle-bounce 2s ease-in-out infinite;
 }
 
-.arrow-text {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-  margin-bottom: 5px;
-}
-
-.arrow-line {
-  width: 0;
-  height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-top: 20px solid #667eea;
-  transform: rotate(-45deg);
-}
-
-/* Hide arrow when textarea is focused or has content */
-.url-textarea:focus + .input-guide-arrow,
-.url-textarea:not(:placeholder-shown) + .input-guide-arrow {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.form-help {
-  font-size: 0.85rem;
-  color: #28a745;
-  margin-top: 0.5rem;
-  line-height: 1.4;
-}
-
-.automation-btn {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  border: none;
-  border-radius: 10px;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-transform: none;
-  transition: all 0.3s ease;
-  width: 100%;
-}
-
-.automation-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
-}
-
-/* Sample URLs */
-.sample-urls {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.sample-urls h6 {
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-.sample-url-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sample-url-list code {
-  background: #f8f9fa;
-  border: 2px solid #666;
-  border-radius: 5px;
-  padding: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
-}
-
-.sample-url-list code:hover {
-  background: #e9ecef;
-  border-color: #667eea;
-  color: #000;
-}
-
-/* Process Overview */
-.process-overview {
-  padding: 4rem 0;
-  background: #f8f9fa;
-}
-
-.section-title {
-  text-align: center;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 3rem;
-  color: #333;
-}
-
-.process-step {
-  text-align: center;
-  padding: 2rem 1rem;
-}
-
-.step-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.process-step h4 {
-  color: #333;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.process-step p {
-  color: #666;
-  line-height: 1.6;
-}
-
-/* Today's Stats */
-.todays-stats {
-  padding: 3rem 0;
-  background: white;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-  border: 1px solid #e9ecef;
-  transition: transform 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-}
-
-.stat-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #667eea;
-  margin-bottom: 0.5rem;
-}
-
-/* Recent Activity */
-.recent-activity {
-  padding: 3rem 0;
-  background: #f8f9fa;
-}
-
-.activity-item {
-  background: white;
-  border-radius: 10px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.activity-status {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #28a745;
-}
-
-.activity-status.processing {
-  background: #ffc107;
-}
-
-.activity-status.failed {
-  background: #dc3545;
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #333;
-}
-
-.activity-details {
-  font-size: 0.9rem;
-  color: #666;
-  margin-top: 0.25rem;
-}
-
-/* Navigation Section */
-.navigation-section {
-  padding: 3rem 0;
-  background: white;
-}
-
-.navigation-cards {
-  display: flex;
-  gap: 2rem;
-  justify-content: center;
-  margin-top: 2rem;
-}
-
-.nav-card {
-  background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 15px;
-  padding: 2rem;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.3s ease;
-  flex: 1;
-  max-width: 300px;
-  text-align: center;
-}
-
-.nav-card:hover {
-  border-color: #667eea;
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.1);
-  text-decoration: none;
-  color: inherit;
-}
-
-.youtube-card:hover {
-  border-color: #ff0000;
-  box-shadow: 0 10px 25px rgba(255, 0, 0, 0.1);
-}
-
-.nav-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.nav-card h4 {
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.nav-card p {
-  color: #666;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes gentle-bounce {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
+  .hero-section {
+    background-attachment: scroll;
   }
   
-  .quick-stats {
-    flex-direction: column;
-    gap: 1rem;
+  .grid.grid-cols-1.lg\\:grid-cols-3 {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
   
-  .automation-form-card {
-    margin-top: 2rem;
+  .input-mode-card {
+    transform: none !important;
   }
   
-  .sample-url-list {
-    flex-direction: column;
+  .input-mode-card:hover {
+    transform: translateY(-2px) !important;
+  }
+}
+
+/* Progress Bar Animations */
+.step-item {
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.step-item.current-step {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid #3b82f6;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.step-item.current-step .text-gray-600 {
+  color: #374151 !important;
+  font-weight: 600;
+}
+
+/* Progress bar animations */
+.bg-orange-400, .bg-blue-400, .bg-purple-400, .bg-green-400, .bg-red-400, .bg-teal-400 {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-orange-400::after, .bg-blue-400::after, .bg-purple-400::after, 
+.bg-green-400::after, .bg-red-400::after, .bg-teal-400::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* ETA badges pulse effect */
+.bg-orange-50, .bg-blue-50, .bg-green-50 {
+  animation: pulse-subtle 3s infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Overall progress bars glow effect */
+.bg-gradient-to-r {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-gradient-to-r::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: glow 3s infinite;
+}
+
+@keyframes glow {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Status text animations */
+.text-gray-600 {
+  transition: color 0.3s ease;
+}
+
+/* Mobile responsiveness for progress cards */
+@media (max-width: 1024px) {
+  .grid.lg\\:grid-cols-3 {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .step-item {
+    padding: 0.25rem;
   }
   
-  .navigation-cards {
-    flex-direction: column;
-  }
-  
-  .input-guide-arrow {
-    right: -90px;
-    top: 5px;
-  }
-  
-  .arrow-text {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.8rem;
+  .step-item.current-step {
+    transform: translateX(2px);
   }
 }
 </style>

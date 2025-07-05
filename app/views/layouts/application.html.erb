@@ -7,6 +7,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <meta http-equiv="Content-Security-Policy" content="font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <%= yield :head %>
 
@@ -20,10 +23,44 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    
+    <script>
+      // Global error handlers for debugging Promise rejections
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled Promise Rejection:', event.reason);
+        console.error('Promise rejection details:', {
+          reason: event.reason,
+          reasonMessage: event.reason?.message,
+          reasonStack: event.reason?.stack,
+          reasonName: event.reason?.name,
+          promise: event.promise
+        });
+        
+        // Log full error object properties if it's an object
+        if (typeof event.reason === 'object' && event.reason !== null) {
+          console.error('Full error object:', JSON.stringify(event.reason, Object.getOwnPropertyNames(event.reason)));
+        }
+        
+        // Prevent the default unhandled rejection error
+        event.preventDefault();
+      });
+      
+      // Global error handler for JavaScript errors
+      window.addEventListener('error', function(event) {
+        console.error('JavaScript Error:', event.error);
+        console.error('Error details:', {
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          error: event.error
+        });
+      });
+    </script>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
+  <body class="bg-gray-50">
+    <main class="min-h-screen">
       <%= yield %>
     </main>
   </body>
