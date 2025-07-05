@@ -37,7 +37,8 @@ Rails.application.routes.draw do
   get '/monitoring/status', to: 'simple_monitoring#status'
   
   # YouTube OAuth callback
-  get '/auth/youtube/callback', to: 'auth#youtube_callback'
+  get '/auth/:provider/callback', to: 'auth#youtube_callback'
+  get '/auth/failure', to: redirect('/')
   
   # Text Notes routes (NEW - Personal spiritual content)
   resources :text_notes do

@@ -66,6 +66,10 @@ gem "dotenv-rails"
 # For user authentication
 gem "devise"
 
+# For YouTube OAuth authentication
+gem "omniauth"
+gem "omniauth-google-oauth2"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
