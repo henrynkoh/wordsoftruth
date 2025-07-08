@@ -6,12 +6,12 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     # Clear all data for clean testing
     Video.destroy_all
     Sermon.destroy_all
-    
+
     # Setup test URLs and content
     @test_sermon_url = "https://example-church.com/sermons/faith-hope"
     @test_sermon_html = create_realistic_sermon_html
     @performance_metrics = {}
-    
+
     # Configure realistic timeouts for integration testing
     @max_crawling_time = 10.seconds
     @max_video_generation_time = 30.seconds
@@ -22,7 +22,7 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     # Cleanup test files and data
     cleanup_test_files
     WebMock.reset!
-    
+
     # Log performance metrics
     log_performance_metrics if @performance_metrics.any?
   end
@@ -34,67 +34,67 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
       # Step 1: Data Ingestion - URL Submission to Sermon Crawling
       ingestion_time = performance_benchmark("Data Ingestion") do
         stub_sermon_crawling_request
-        
-        assert_difference 'Sermon.count', 1 do
-          post '/api/sermons', params: { url: @test_sermon_url }
+
+        assert_difference "Sermon.count", 1 do
+          post "/api/sermons", params: { url: @test_sermon_url }
           assert_response :success
         end
       end
-      
+
       sermon = Sermon.last
       assert_not_nil sermon
       assert_equal "Faith and Hope in Difficult Times", sermon.title
       assert_equal "Grace Community Church", sermon.church
-      
+
       # Step 2: Background Job Processing - Sermon Crawling
       crawling_time = performance_benchmark("Sermon Crawling Job") do
         perform_enqueued_jobs do
           SermonCrawlingJob.perform_later(@test_sermon_url)
         end
       end
-      
+
       # Verify sermon was processed correctly
       sermon.reload
       assert_not_nil sermon.interpretation
       assert_not_nil sermon.action_points
-      
+
       # Step 3: Video Generation Pipeline
       video_generation_time = performance_benchmark("Video Generation Pipeline") do
         stub_video_generation_success
-        
-        assert_difference 'Video.count', 1 do
+
+        assert_difference "Video.count", 1 do
           perform_enqueued_jobs do
             VideoProcessingJob.perform_later(sermon.id)
           end
         end
       end
-      
+
       video = sermon.videos.last
       assert_not_nil video
-      assert_equal 'processing', video.status
+      assert_equal "processing", video.status
       assert_not_nil video.script
-      
+
       # Step 4: Video Processing Completion
-      completion_time = performance_benchmark("Video Processing Completion") do
+      performance_benchmark("Video Processing Completion") do
         video.update!(
-          status: 'uploaded',
-          video_path: '/storage/videos/test_video.mp4',
-          thumbnail_path: '/storage/thumbnails/test_thumb.jpg',
-          youtube_id: 'TEST123ABC'
+          status: "uploaded",
+          video_path: "/storage/videos/test_video.mp4",
+          thumbnail_path: "/storage/thumbnails/test_thumb.jpg",
+          youtube_id: "TEST123ABC"
         )
       end
-      
+
       # Step 5: Dashboard Data Aggregation and Display
       dashboard_time = performance_benchmark("Dashboard Display") do
         get dashboard_index_path
         assert_response :success
       end
-      
+
       # Verify dashboard shows updated data
       assert_response_includes sermon.title
       assert_response_includes sermon.church
       assert_response_includes "uploaded"
-      
+
       # Performance Assertions
       assert ingestion_time < 1.second, "Data ingestion took too long: #{ingestion_time}s"
       assert crawling_time < @max_crawling_time, "Crawling took too long: #{crawling_time}s"
@@ -106,10 +106,10 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
   test "batch processing workflow with multiple sermons" do
     sermon_urls = [
       "https://church1.com/sermon1",
-      "https://church2.com/sermon2", 
-      "https://church3.com/sermon3"
+      "https://church2.com/sermon2",
+      "https://church3.com/sermon3",
     ]
-    
+
     performance_benchmark("Batch Processing Workflow") do
       # Setup stubs for all URLs
       sermon_urls.each_with_index do |url, index|
@@ -117,18 +117,18 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
           .to_return(
             status: 200,
             body: create_sermon_html_variant(index + 1),
-            headers: { 'Content-Type' => 'text/html' }
+            headers: { "Content-Type" => "text/html" }
           )
       end
-      
+
       # Batch ingestion
       ingestion_time = performance_benchmark("Batch Ingestion") do
         sermon_urls.each do |url|
-          post '/api/sermons', params: { url: url }
+          post "/api/sermons", params: { url: url }
           assert_response :success
         end
       end
-      
+
       # Batch processing
       processing_time = performance_benchmark("Batch Processing") do
         perform_enqueued_jobs do
@@ -137,30 +137,30 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
           end
         end
       end
-      
+
       # Verify all sermons were created
       assert_equal 3, Sermon.count
-      
+
       # Batch video generation
       video_generation_time = performance_benchmark("Batch Video Generation") do
         stub_video_generation_success
-        
+
         perform_enqueued_jobs do
-          Sermon.all.each do |sermon|
+          Sermon.all.find_each do |sermon|
             VideoProcessingJob.perform_later(sermon.id)
           end
         end
       end
-      
+
       # Verify all videos were created
       assert_equal 3, Video.count
-      
+
       # Dashboard aggregation with multiple items
       dashboard_time = performance_benchmark("Dashboard with Multiple Items") do
         get dashboard_index_path
         assert_response :success
       end
-      
+
       # Performance assertions for batch operations
       assert ingestion_time < 3.seconds, "Batch ingestion took too long"
       assert processing_time < 15.seconds, "Batch processing took too long"
@@ -176,40 +176,40 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
       {
         name: "Rich HTML Content",
         url: "https://rich-church.com/sermon",
-        content_type: "text/html; charset=utf-8"
+        content_type: "text/html; charset=utf-8",
       },
       {
-        name: "Minimal HTML Content", 
+        name: "Minimal HTML Content",
         url: "https://minimal-church.com/sermon",
-        content_type: "text/html"
+        content_type: "text/html",
       },
       {
         name: "International Content",
         url: "https://국제교회.com/sermon",
-        content_type: "text/html; charset=utf-8"
-      }
+        content_type: "text/html; charset=utf-8",
+      },
     ]
-    
+
     test_cases.each do |test_case|
       performance_benchmark("Ingestion: #{test_case[:name]}") do
         stub_request(:get, test_case[:url])
           .to_return(
             status: 200,
             body: create_content_variant(test_case[:name]),
-            headers: { 'Content-Type' => test_case[:content_type] }
+            headers: { "Content-Type" => test_case[:content_type] }
           )
-        
+
         ingestion_time = Benchmark.realtime do
-          post '/api/sermons', params: { url: test_case[:url] }
+          post "/api/sermons", params: { url: test_case[:url] }
           assert_response :success
         end
-        
+
         # Verify content was properly parsed and stored
         sermon = Sermon.find_by(source_url: test_case[:url])
         assert_not_nil sermon
         assert sermon.title.present?
         assert sermon.church.present?
-        
+
         # Performance assertion
         assert ingestion_time < 2.seconds, "#{test_case[:name]} ingestion too slow: #{ingestion_time}s"
       end
@@ -221,9 +221,9 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
       { status: 404, error_type: "Not Found" },
       { status: 500, error_type: "Server Error" },
       { status: 503, error_type: "Service Unavailable" },
-      { timeout: true, error_type: "Timeout" }
+      { timeout: true, error_type: "Timeout" },
     ]
-    
+
     error_scenarios.each do |scenario|
       performance_benchmark("Error Handling: #{scenario[:error_type]}") do
         if scenario[:timeout]
@@ -232,18 +232,18 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
           stub_request(:get, @test_sermon_url)
             .to_return(status: scenario[:status], body: "Error")
         end
-        
+
         recovery_time = Benchmark.realtime do
           perform_enqueued_jobs do
             SermonCrawlingJob.perform_later(@test_sermon_url)
           end
         end
-        
+
         # Verify error was handled gracefully
-        assert_no_difference 'Sermon.count' do
+        assert_no_difference "Sermon.count" do
           # Error should not create invalid records
         end
-        
+
         # Performance assertion - errors should fail fast
         assert recovery_time < 5.seconds, "Error recovery too slow: #{recovery_time}s"
       end
@@ -256,9 +256,9 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     content_sizes = [
       { name: "Short Sermon", script_length: 500 },
       { name: "Medium Sermon", script_length: 2000 },
-      { name: "Long Sermon", script_length: 8000 }
+      { name: "Long Sermon", script_length: 8000 },
     ]
-    
+
     content_sizes.each do |size_test|
       performance_benchmark("Video Pipeline: #{size_test[:name]}") do
         # Create sermon with specific content size
@@ -266,26 +266,26 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
           interpretation: "x" * size_test[:script_length],
           action_points: "Action point content"
         )
-        
+
         generation_time = performance_benchmark("Generation: #{size_test[:name]}") do
           stub_video_generation_success
-          
+
           perform_enqueued_jobs do
             VideoProcessingJob.perform_later(sermon.id)
           end
         end
-        
+
         video = sermon.videos.last
         assert_not_nil video
         assert video.script.length >= 10
-        
+
         # Performance scaling expectations
         max_time = case size_test[:name]
-                  when "Short Sermon" then 10.seconds
-                  when "Medium Sermon" then 20.seconds  
-                  when "Long Sermon" then 40.seconds
-                  end
-        
+        when "Short Sermon" then 10.seconds
+        when "Medium Sermon" then 20.seconds
+        when "Long Sermon" then 40.seconds
+        end
+
         assert generation_time < max_time, "#{size_test[:name]} generation too slow: #{generation_time}s"
       end
     end
@@ -300,9 +300,9 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
           source_url: "https://concurrent#{i + 1}.com"
         )
       end
-      
+
       stub_video_generation_success
-      
+
       # Process videos concurrently
       concurrent_time = performance_benchmark("Concurrent Processing") do
         threads = sermons.map do |sermon|
@@ -312,16 +312,16 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
             end
           end
         end
-        
+
         threads.each(&:join)
       end
-      
+
       # Verify all videos were processed
       assert_equal 3, Video.count
       sermons.each do |sermon|
         assert sermon.videos.any?
       end
-      
+
       # Concurrent processing should be faster than sequential
       sequential_estimate = 30.seconds * 3 # Rough estimate
       assert concurrent_time < sequential_estimate, "Concurrent processing not efficient: #{concurrent_time}s"
@@ -340,29 +340,29 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
             source_url: "https://perf-test#{i + 1}.com",
             church: "Performance Church #{(i % 5) + 1}"
           )
-          
+
           create_valid_video(
             sermon,
-            status: ["pending", "processing", "uploaded", "failed"].sample
+            status: [ "pending", "processing", "uploaded", "failed" ].sample
           )
         end
       end
-      
+
       # Test dashboard rendering performance
       dashboard_time = performance_benchmark("Dashboard Rendering") do
         get dashboard_index_path
         assert_response :success
       end
-      
+
       # Test dashboard statistics calculation
       stats_time = performance_benchmark("Statistics Calculation") do
         get dashboard_index_path, params: { format: :json }
-        if response.content_type.include?('json')
+        if response.content_type.include?("json")
           json_data = JSON.parse(response.body)
-          assert json_data.key?('sermon_count') || json_data.key?('statistics')
+          assert json_data.key?("sermon_count") || json_data.key?("statistics")
         end
       end
-      
+
       # Performance assertions for large datasets
       assert setup_time < 30.seconds, "Large dataset setup too slow"
       assert dashboard_time < 5.seconds, "Dashboard rendering with large dataset too slow"
@@ -374,22 +374,22 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     # Create test data
     sermon = create_valid_sermon
     video = create_valid_video(sermon, status: "uploaded")
-    
+
     api_endpoints = [
-      { path: '/api/sermons', name: 'Sermons Index' },
-      { path: "/api/sermons/#{sermon.id}", name: 'Sermon Show' },
-      { path: '/api/videos', name: 'Videos Index' },
-      { path: "/api/videos/#{video.id}", name: 'Video Show' }
+      { path: "/api/sermons", name: "Sermons Index" },
+      { path: "/api/sermons/#{sermon.id}", name: "Sermon Show" },
+      { path: "/api/videos", name: "Videos Index" },
+      { path: "/api/videos/#{video.id}", name: "Video Show" },
     ]
-    
+
     api_endpoints.each do |endpoint|
       performance_benchmark("API: #{endpoint[:name]}") do
         response_time = Benchmark.realtime do
           get endpoint[:path]
           # Handle cases where API endpoints might not exist yet
-          assert_includes [200, 404], response.status
+          assert_includes [ 200, 404 ], response.status
         end
-        
+
         # API responses should be fast
         assert response_time < 1.second, "#{endpoint[:name]} API too slow: #{response_time}s"
       end
@@ -401,33 +401,33 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
   test "memory usage during complete workflow" do
     performance_benchmark("Memory Usage Monitoring") do
       initial_memory = get_memory_usage
-      
+
       # Process multiple sermons to test memory growth
       5.times do |i|
         stub_request(:get, "https://memory-test#{i}.com")
           .to_return(status: 200, body: @test_sermon_html)
-        
+
         # Full workflow for each sermon
         perform_enqueued_jobs do
           SermonCrawlingJob.perform_later("https://memory-test#{i}.com")
         end
-        
+
         sermon = Sermon.last
         stub_video_generation_success
-        
+
         perform_enqueued_jobs do
           VideoProcessingJob.perform_later(sermon.id)
         end
       end
-      
+
       final_memory = get_memory_usage
       memory_growth = final_memory - initial_memory
-      
+
       # Memory growth should be reasonable (less than 100MB for 5 sermons)
       max_acceptable_growth = 100 * 1024 * 1024 # 100MB in bytes
-      assert memory_growth < max_acceptable_growth, 
+      assert memory_growth < max_acceptable_growth,
         "Excessive memory growth: #{memory_growth / 1024 / 1024}MB"
-      
+
       @performance_metrics[:memory_growth] = "#{memory_growth / 1024 / 1024}MB"
     end
   end
@@ -436,25 +436,25 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     performance_benchmark("Database Performance") do
       # Test database operations under load
       query_times = []
-      
+
       # Create baseline data
       20.times { create_valid_sermon }
-      
+
       # Test various database operations
       operations = [
         -> { Sermon.count },
         -> { Sermon.recent.limit(10).to_a },
         -> { Sermon.with_videos.count },
-        -> { Video.includes(:sermon).limit(10).to_a }
+        -> { Video.includes(:sermon).limit(10).to_a },
       ]
-      
+
       operations.each_with_index do |operation, index|
         query_time = Benchmark.realtime { operation.call }
         query_times << query_time
-        
+
         assert query_time < 0.5.seconds, "Database query #{index + 1} too slow: #{query_time}s"
       end
-      
+
       @performance_metrics[:average_query_time] = "#{(query_times.sum / query_times.length * 1000).round(2)}ms"
     end
   end
@@ -465,29 +465,29 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     performance_benchmark("Resilience Testing") do
       # Scenario: Sermon crawling succeeds, video generation fails
       stub_sermon_crawling_request
-      
+
       recovery_time = performance_benchmark("Partial Failure Recovery") do
         # Successful crawling
         perform_enqueued_jobs do
           SermonCrawlingJob.perform_later(@test_sermon_url)
         end
-        
+
         sermon = Sermon.last
         assert_not_nil sermon
-        
+
         # Failed video generation
         stub_video_generation_failure
-        
+
         perform_enqueued_jobs do
           VideoProcessingJob.perform_later(sermon.id)
         end
-        
+
         # Verify partial success state
         sermon.reload
         video = sermon.videos.last
-        assert_equal 'failed', video.status if video
+        assert_equal "failed", video.status if video
       end
-      
+
       # Recovery should be fast
       assert recovery_time < 10.seconds, "Partial failure recovery too slow"
     end
@@ -497,28 +497,28 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     performance_benchmark("System Recovery") do
       # Simulate complete system failure
       original_sermon_count = Sermon.count
-      
+
       # Multiple failed attempts
       3.times do
         stub_request(:get, @test_sermon_url).to_return(status: 500)
-        
+
         perform_enqueued_jobs do
           SermonCrawlingJob.perform_later(@test_sermon_url)
         end
       end
-      
+
       # System should remain stable
       assert_equal original_sermon_count, Sermon.count
-      
+
       # Recovery with successful request
       recovery_time = performance_benchmark("Full System Recovery") do
         stub_sermon_crawling_request
-        
+
         perform_enqueued_jobs do
           SermonCrawlingJob.perform_later(@test_sermon_url)
         end
       end
-      
+
       # Verify system recovered
       assert_equal original_sermon_count + 1, Sermon.count
       assert recovery_time < 5.seconds, "System recovery too slow"
@@ -530,30 +530,30 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
   def performance_benchmark(operation_name)
     start_time = Time.current
     start_memory = get_memory_usage
-    
-    result = yield
-    
+
+    yield
+
     end_time = Time.current
     end_memory = get_memory_usage
-    
+
     execution_time = end_time - start_time
     memory_delta = end_memory - start_memory
-    
+
     @performance_metrics[operation_name] = {
       execution_time: "#{(execution_time * 1000).round(2)}ms",
-      memory_delta: "#{memory_delta / 1024}KB"
+      memory_delta: "#{memory_delta / 1024}KB",
     }
-    
+
     Rails.logger.info "PERFORMANCE: #{operation_name} completed in #{execution_time.round(3)}s"
-    
+
     execution_time
   end
 
   def get_memory_usage
     # Cross-platform memory usage detection
-    if RUBY_PLATFORM.include?('darwin') # macOS
+    if RUBY_PLATFORM.include?("darwin") # macOS
       `ps -o rss= -p #{Process.pid}`.to_i * 1024 # Convert KB to bytes
-    elsif RUBY_PLATFORM.include?('linux')
+    elsif RUBY_PLATFORM.include?("linux")
       File.read("/proc/#{Process.pid}/status")
         .lines
         .grep(/VmRSS/)[0]
@@ -569,7 +569,7 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     Rails.logger.info "="*50
     Rails.logger.info "INTEGRATION TEST PERFORMANCE METRICS"
     Rails.logger.info "="*50
-    
+
     @performance_metrics.each do |operation, metrics|
       if metrics.is_a?(Hash)
         Rails.logger.info "#{operation}:"
@@ -579,13 +579,13 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
         Rails.logger.info "#{operation}: #{metrics}"
       end
     end
-    
+
     Rails.logger.info "="*50
   end
 
   def stub_sermon_crawling_request
     stub_request(:get, @test_sermon_url)
-      .to_return(status: 200, body: @test_sermon_html, headers: { 'Content-Type' => 'text/html' })
+      .to_return(status: 200, body: @test_sermon_html, headers: { "Content-Type" => "text/html" })
   end
 
   def stub_video_generation_success
@@ -593,8 +593,8 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
     VideoGeneratorService.any_instance.stubs(:generate_video).returns(
       OpenStruct.new(
         success?: true,
-        video_path: '/tmp/test_video.mp4',
-        thumbnail_path: '/tmp/test_thumbnail.jpg'
+        video_path: "/tmp/test_video.mp4",
+        thumbnail_path: "/tmp/test_thumbnail.jpg"
       )
     )
   end
@@ -631,10 +631,10 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
   end
 
   def create_sermon_html_variant(index)
-    titles = ["Faith in Action", "Hope for Tomorrow", "Love Never Fails"]
-    churches = ["First Baptist", "Community Methodist", "Grace Presbyterian"]
-    pastors = ["Rev. Sarah Wilson", "Pastor Mike Johnson", "Dr. David Lee"]
-    
+    titles = [ "Faith in Action", "Hope for Tomorrow", "Love Never Fails" ]
+    churches = [ "First Baptist", "Community Methodist", "Grace Presbyterian" ]
+    pastors = [ "Rev. Sarah Wilson", "Pastor Mike Johnson", "Dr. David Lee" ]
+
     <<~HTML
       <html>
         <head><title>#{titles[index - 1]}</title></head>
@@ -675,10 +675,10 @@ class BusinessWorkflowTest < ActionDispatch::IntegrationTest
 
   def cleanup_test_files
     test_files = [
-      '/tmp/test_video.mp4',
-      '/tmp/test_thumbnail.jpg'
+      "/tmp/test_video.mp4",
+      "/tmp/test_thumbnail.jpg",
     ]
-    
+
     test_files.each do |file|
       File.delete(file) if File.exist?(file)
     end
