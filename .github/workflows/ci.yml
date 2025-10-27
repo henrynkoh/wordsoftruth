@@ -52,7 +52,7 @@ jobs:
         bundle exec rubocop --format progress --format json --out rubocop_results.json
         
     - name: Upload RuboCop results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: rubocop-results
@@ -83,7 +83,7 @@ jobs:
         bundle exec brakeman --format json --output brakeman_results.json --quiet
         
     - name: Upload Brakeman results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: brakeman-results
@@ -169,7 +169,7 @@ jobs:
         bundle exec rails test:business_validation --verbose
     
     - name: Keep screenshots from failed system tests
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: failure()
       with:
         name: screenshots
@@ -241,7 +241,7 @@ jobs:
       run: bundle exec rake business:generate_validation_report
     
     - name: Upload business validation results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: business-validation-results
